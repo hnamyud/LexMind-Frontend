@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Primary colors */
+  --color-primary: #00f2ff;
+  --color-brand: #00ffff;
+
+  /* Background colors */
+  --color-bg-dark: #050505;
+  --color-neutral-dark: #121212;
+  --color-sidebar: #121212;
+  --color-main: #0a0a0a;
+
+  /* Bubble colors */
+  --color-user-bubble: #1e1e1e;
+  --color-ai-bubble: #131921;
+
+  /* Login page */
+  --color-legal-navy: #0a0a0f;
+  --color-legal-charcoal: #1a1a1a;
+  --color-login-primary: #ec5b13;
+}
+
+/* ===== Global Base ===== */
+html {
+  background-color: #050505;
+  color: #f1f5f9;
+}
+
+/* ===== Star Field Background (home) ===== */
+.star-field {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 50px 160px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1.5px 1.5px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(1px 1px at 160px 120px, #fff, rgba(0, 0, 0, 0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.15;
+}
+
+.comet-trail {
+  background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.1), transparent);
+  height: 1px;
+  width: 200px;
+  position: absolute;
+  transform: rotate(-15deg);
+}
+
+/* ===== Chat Scrollbar ===== */
+.chat-stream::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-stream::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-stream::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+
+/* ===== AI Glow Bubble ===== */
+.ai-glow {
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1), inset 0 0 1px rgba(0, 255, 255, 0.3);
+  border-left: 2px solid #00ffff;
+}
+
+/* ===== Typing Animation ===== */
+.typing-effect {
+  overflow: hidden;
+  border-right: 0.15em solid #00ffff;
+  white-space: nowrap;
+  margin: 0 auto;
+  letter-spacing: -0.02em;
+  animation:
+    typing 3.5s steps(40, end),
+    blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+
+  from,
+  to {
+    border-color: transparent;
+  }
+
+  50% {
+    border-color: #00ffff;
+  }
+}
+
+/* ===== Login Glow ===== */
+.glow-effect {
+  box-shadow: 0 0 40px 10px rgba(236, 91, 19, 0.1);
+}
+
+.mono-text {
+  font-family: "Roboto Mono", monospace;
+}
