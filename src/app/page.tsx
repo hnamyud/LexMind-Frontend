@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import StarryBackground from "@/components/home/StarryBackground";
 import { authService } from "@/lib/authService";
@@ -33,6 +33,151 @@ function HomePageInner() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+// ─── Terminal Demo Component ───────────────────────────────────────────────────
+const USER_Q = "Tôi 17 tuổi lái xe máy 110cc thì có vi phạm luật giao thông không?";
+const BOT_A = `Hành vi vi phạm: Người từ đủ 16 tuổi đến dưới 18 tuổi điều khiển xe mô tô có dung tích xi-lanh từ 50 cm3 trở lên.
+
+Luật áp dụng: [Điều 18, Khoản 4, Điểm a, Nghị định 168/2024/NĐ-CP]
+
+Phân tích: Bạn 17 tuổi — "người từ đủ 16 tuổi đến dưới 18 tuổi". Xe máy 110cc là "xe mô tô có dung tích xi-lanh từ 50 cm3 trở lên" — đây là hành vi vi phạm về điều kiện người điều khiển xe cơ giới.
+
+Hình phạt: Phạt tiền từ 400.000 đồng đến 600.000 đồng.`;
+
+function useTypewriter(text: string, speed = 18, startDelay = 0, active = false) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) { setDisplayed(""); setDone(false); return; }
+    let i = 0;
+    setDisplayed("");
+    setDone(false);
+    const t = setTimeout(() => {
+      const iv = setInterval(() => {
+        i++;
+        setDisplayed(text.slice(0, i));
+        if (i >= text.length) { clearInterval(iv); setDone(true); }
+      }, speed);
+      return () => clearInterval(iv);
+    }, startDelay);
+    return () => clearTimeout(t);
+  }, [active, text, speed, startDelay]);
+  return { displayed, done };
+}
+
+function TerminalDemo() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [phase, setPhase] = useState<"idle"|"user"|"thinking"|"bot">("idle");
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
+    }, { threshold: 0.35 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    setPhase("user");
+  }, [visible]);
+
+  const qTyper = useTypewriter(USER_Q, 22, 200, phase === "user" || phase === "thinking" || phase === "bot");
+  const aTyper = useTypewriter(BOT_A, 10, 0, phase === "bot");
+
+  // After user Q done → thinking → bot answer
+  useEffect(() => {
+    if (qTyper.done && phase === "user") {
+      const t = setTimeout(() => setPhase("thinking"), 400);
+      return () => clearTimeout(t);
+    }
+  }, [qTyper.done, phase]);
+  useEffect(() => {
+    if (phase === "thinking") {
+      const t = setTimeout(() => setPhase("bot"), 1800);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+  }, [qTyper.displayed, aTyper.displayed]);
+
+  return (
+    <div ref={ref} className="relative rounded-xl p-2 overflow-hidden shadow-2xl" style={{ border: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(18,18,18,0.4)", backdropFilter: "blur(12px)" }}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,242,255,0.05), transparent)" }} />
+      {/* Window bar */}
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="flex gap-1.5">
+          {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} className="size-2.5 rounded-full" style={{ backgroundColor: c, opacity: 0.8 }} />)}
+        </div>
+        <div className="flex-1 text-center text-[10px] uppercase tracking-widest font-bold" style={{ color: "#64748b" }}>LexMind Terminal v1.0.4</div>
+      </div>
+      {/* Body */}
+      <div ref={bodyRef} className="rounded-b-lg flex flex-col gap-5 p-6 text-left overflow-y-auto" style={{ backgroundColor: "rgba(5,5,5,0.85)", minHeight: "340px", maxHeight: "440px" }}>
+        {/* User bubble */}
+        {phase !== "idle" && (
+          <div className="flex justify-end gap-3 items-end">
+            <div className="max-w-[70%] rounded-xl px-4 py-3 text-sm leading-relaxed font-mono" style={{ backgroundColor: "rgba(0,242,255,0.1)", border: "1px solid rgba(0,242,255,0.2)", color: "#e2e8f0" }}>
+              {qTyper.displayed}
+              {!qTyper.done && <span className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse" style={{ backgroundColor: "#00f2ff" }} />}
+            </div>
+            <div className="size-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+              <span className="material-symbols-outlined text-xs" style={{ color: "#94a3b8" }}>person</span>
+            </div>
+          </div>
+        )}
+
+        {/* Thinking indicator */}
+        {phase === "thinking" && (
+          <div className="flex gap-3 items-start">
+            <div className="size-7 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(0,242,255,0.2)" }}>
+              <span className="material-symbols-outlined text-xs" style={{ color: "#00f2ff" }}>smart_toy</span>
+            </div>
+            <div className="px-4 py-3 rounded-xl text-[11px] font-mono flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "rgba(0,242,255,0.7)", border: "1px solid rgba(0,242,255,0.1)" }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "#00f2ff" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "#00f2ff" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "#00f2ff" }} />
+              <span className="ml-1 uppercase tracking-widest">Đang phân tích Nghị định 168/2024...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Bot answer */}
+        {phase === "bot" && (
+          <div className="flex gap-3 items-start">
+            <div className="size-7 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(0,242,255,0.2)" }}>
+              <span className="material-symbols-outlined text-xs" style={{ color: "#00f2ff" }}>smart_toy</span>
+            </div>
+            <div className="max-w-[85%] rounded-xl px-4 py-3 text-xs leading-relaxed font-mono whitespace-pre-wrap" style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#cbd5e1" }}>
+              {aTyper.displayed}
+              {!aTyper.done && <span className="inline-block w-1.5 h-3.5 ml-0.5 align-middle animate-pulse" style={{ backgroundColor: "#00f2ff" }} />}
+            </div>
+          </div>
+        )}
+
+        {/* Footer status */}
+        <div className="mt-auto pt-4 flex items-center justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "rgba(0,242,255,0.5)" }}>
+            {phase === "idle" && "LEXMIND READY..."}
+            {phase === "user" && "RECEIVING QUERY..."}
+            {phase === "thinking" && "ANALYZING DECREE 168/2024... [NĐ-CP]"}
+            {phase === "bot" && (aTyper.done ? "✓ RESPONSE COMPLETE" : "STREAMING ANSWER...")}
+          </span>
+          <div className="flex gap-2">
+            <div className="h-2 w-12 rounded" style={{ backgroundColor: phase !== "idle" ? "rgba(0,242,255,0.3)" : "rgba(255,255,255,0.1)" }} />
+            <div className="h-2 w-8 rounded" style={{ backgroundColor: "rgba(255,255,255,0.1)" }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
   return (
     <div
@@ -193,110 +338,7 @@ function HomePageInner() {
 
           {/* Terminal Mockup */}
           <div className="mt-32 w-full max-w-5xl mx-auto px-4">
-            <div
-              className="relative rounded-xl p-2 overflow-hidden shadow-2xl"
-              style={{
-                border: "1px solid rgba(255,255,255,0.1)",
-                backgroundColor: "rgba(18,18,18,0.4)",
-                backdropFilter: "blur(12px)",
-              }}
-            >
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    "linear-gradient(to bottom, rgba(0,242,255,0.05), transparent)",
-                }}
-              ></div>
-              {/* Window controls */}
-              <div
-                className="flex items-center gap-2 px-4 py-3"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-              >
-                <div className="flex gap-1.5">
-                  <div
-                    className="size-2.5 rounded-full"
-                    style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                  ></div>
-                  <div
-                    className="size-2.5 rounded-full"
-                    style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                  ></div>
-                  <div
-                    className="size-2.5 rounded-full"
-                    style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                  ></div>
-                </div>
-                <div
-                  className="flex-1 text-center text-[10px] uppercase tracking-widest font-bold"
-                  style={{ color: "#64748b" }}
-                >
-                  LexMind Terminal v1.0.4
-                </div>
-              </div>
-              {/* Terminal Body */}
-              <div
-                className="aspect-video rounded-b-lg flex flex-col p-6 text-left"
-                style={{ backgroundColor: "rgba(5,5,5,0.8)" }}
-              >
-                <div className="flex gap-4 mb-6">
-                  <div
-                    className="size-8 rounded flex items-center justify-center"
-                    style={{ backgroundColor: "rgba(0,242,255,0.2)" }}
-                  >
-                    <span
-                      className="material-symbols-outlined text-sm"
-                      style={{ color: "#00f2ff" }}
-                    >
-                      smart_toy
-                    </span>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div
-                      className="h-4 rounded w-3/4"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    ></div>
-                    <div
-                      className="h-4 rounded w-1/2"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="flex gap-4 self-end w-2/3 mb-6">
-                  <div className="flex-1 space-y-2">
-                    <div
-                      className="h-4 rounded w-full"
-                      style={{ backgroundColor: "rgba(0,242,255,0.1)" }}
-                    ></div>
-                  </div>
-                  <div
-                    className="size-8 rounded"
-                    style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                  ></div>
-                </div>
-                <div
-                  className="mt-auto pt-4 flex items-center justify-between"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
-                >
-                  <span
-                    className="text-[10px] font-mono"
-                    style={{ color: "rgba(0,242,255,0.6)" }}
-                  >
-                    ANALYZING PRECEDENT... [98%]
-                  </span>
-                  <div className="flex gap-2">
-                    <div
-                      className="h-2 w-12 rounded"
-                      style={{ backgroundColor: "rgba(0,242,255,0.2)" }}
-                    ></div>
-                    <div
-                      className="h-2 w-8 rounded"
-                      style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TerminalDemo />
           </div>
         </main>
 
@@ -318,11 +360,10 @@ function HomePageInner() {
                 search_insights
               </span>
               <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Advanced Research
+                Agentic Legal Graph
               </h3>
               <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Deep-dive into global legal precedents with sub-second latency
-                and semantic context.
+                Deep-dive into Decree 168/2024 through Neo4j Knowledge Graph with sub-second latency and semantic accuracy.
               </p>
             </div>
             <div
@@ -340,11 +381,10 @@ function HomePageInner() {
                 security
               </span>
               <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Sovereign Privacy
+                Official Data Sovereignty
               </h3>
               <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Military-grade encryption for every query. Your data never
-                trains the public model.
+                Real-time updates from the Ministry of Justice. Your queries are encrypted and never used to train public models.
               </p>
             </div>
             <div
@@ -358,11 +398,10 @@ function HomePageInner() {
                 auto_awesome
               </span>
               <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Drafting Engine
+                Penalty &amp; Point Engine
               </h3>
               <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Generate complex filings and contracts with professional
-                precision and tone control.
+                Automatically simulate fine levels and GPLX point deductions with professional precision and intelligent logic control.
               </p>
             </div>
           </div>

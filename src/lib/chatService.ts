@@ -56,7 +56,8 @@ export interface AskPayload {
 // ─── SSE Stream reader ────────────────────────────────────────────────────────
 async function readStream(
     response: Response,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    signal?: AbortSignal
 ): Promise<void> {
     const reader = response.body?.getReader();
     if (!reader) throw new Error("No response body");
@@ -64,28 +65,40 @@ async function readStream(
     const decoder = new TextDecoder();
     let buffer = "";
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    // Khi user hủy, cancel reader
+    signal?.addEventListener("abort", () => { reader.cancel(); });
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? ""; // giữ lại dòng chưa hoàn chỉnh
+    try {
+        while (true) {
+            if (signal?.aborted) break;
+            const { done, value } = await reader.read();
+            if (done) break;
 
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data:")) continue;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? ""; // giữ lại dòng chưa hoàn chỉnh
 
-            const raw = trimmed.slice(5).trim();
-            if (!raw || raw === "[DONE]") continue;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith("data:")) continue;
 
-            try {
-                const parsed = JSON.parse(raw) as StreamChunk;
-                onChunk(parsed);
-            } catch {
-                // Bỏ qua dòng không parse được
+                const raw = trimmed.slice(5).trim();
+                if (!raw || raw === "[DONE]") continue;
+
+                try {
+                    const parsed = JSON.parse(raw) as StreamChunk;
+                    onChunk(parsed);
+                } catch {
+                    // Bỏ qua dòng không parse được
+                }
             }
         }
+    } catch (err) {
+        // Bỏ qua lỗi do abort
+        if (signal?.aborted) return;
+        throw err;
+    } finally {
+        reader.releaseLock();
     }
 }
 
@@ -133,13 +146,15 @@ export const chatService = {
      */
     async askStream(
         payload: AskPayload,
-        onChunk: (chunk: StreamChunk) => void
+        onChunk: (chunk: StreamChunk) => void,
+        signal?: AbortSignal
     ): Promise<void> {
         const response = await authFetch(`${BASE_URL}/chat/ask/stream`, {
             method: "POST",
             body: JSON.stringify(payload),
+            signal,
         });
-        await readStream(response, onChunk);
+        await readStream(response, onChunk, signal);
     },
 
     /**
@@ -148,12 +163,14 @@ export const chatService = {
      */
     async regenerateStream(
         messageId: string,
-        onChunk: (chunk: StreamChunk) => void
+        onChunk: (chunk: StreamChunk) => void,
+        signal?: AbortSignal
     ): Promise<void> {
         const response = await authFetch(`${BASE_URL}/chat/regenerate/${messageId}`, {
             method: "POST",
             body: JSON.stringify({}),
+            signal,
         });
-        await readStream(response, onChunk);
+        await readStream(response, onChunk, signal);
     },
 };

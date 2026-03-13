@@ -299,10 +299,14 @@ function ChatPageInner() {
 
     const handleSend = useCallback(async (question: string) => {
         if (!question.trim() || isStreaming) return;
-        if (question.trim().length < 10) return;
+
 
         setInput("");
         setIsStreaming(true);
+
+        // Tạo AbortController mới cho request này
+        const abort = new AbortController();
+        abortRef.current = abort;
 
         // Thêm user message
         const userMsg: Message = {
@@ -377,16 +381,22 @@ function ChatPageInner() {
                             break;
                     }
                 }
-            );
+            , abort.signal);
         } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
-            updateLastMessage((msg) => ({
-                ...msg,
-                streaming: false,
-                error: errorMsg,
-            }));
+            if ((err as any)?.name === "AbortError" || abort.signal.aborted) {
+                // User chủ động hủy — đấu streaming: false, giữ lại content đã có
+                updateLastMessage((msg) => ({ ...msg, streaming: false }));
+            } else {
+                const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
+                updateLastMessage((msg) => ({
+                    ...msg,
+                    streaming: false,
+                    error: errorMsg,
+                }));
+            }
         } finally {
             setIsStreaming(false);
+            abortRef.current = null;
         }
     }, [isStreaming, conversationId, updateLastMessage, addConversation, setActiveId]);
 
@@ -412,6 +422,8 @@ function ChatPageInner() {
         });
 
         try {
+            const abort = new AbortController();
+            abortRef.current = abort;
             await chatService.regenerateStream(messageId, (chunk: StreamChunk) => {
                 setMessages((prev) => {
                     const idx = prev.findIndex((m) => m.id === messageId);
@@ -445,20 +457,35 @@ function ChatPageInner() {
                     copy[idx] = msg;
                     return copy;
                 });
-            });
+            }, abort.signal);
         } catch (err) {
-            const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
-            setMessages((prev) => {
-                const idx = prev.findIndex((m) => m.id === messageId);
-                if (idx === -1) return prev;
-                const copy = [...prev];
-                copy[idx] = { ...copy[idx], streaming: false, error: errorMsg };
-                return copy;
-            });
+            if ((err as any)?.name === "AbortError" || abortRef.current?.signal.aborted) {
+                setMessages((prev) => {
+                    const idx = prev.findIndex((m) => m.id === messageId);
+                    if (idx === -1) return prev;
+                    const copy = [...prev];
+                    copy[idx] = { ...copy[idx], streaming: false };
+                    return copy;
+                });
+            } else {
+                const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
+                setMessages((prev) => {
+                    const idx = prev.findIndex((m) => m.id === messageId);
+                    if (idx === -1) return prev;
+                    const copy = [...prev];
+                    copy[idx] = { ...copy[idx], streaming: false, error: errorMsg };
+                    return copy;
+                });
+            }
         } finally {
             setIsStreaming(false);
+            abortRef.current = null;
         }
     }, [isStreaming]);
+
+    const handleCancel = useCallback(() => {
+        abortRef.current?.abort();
+    }, []);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -527,16 +554,20 @@ function ChatPageInner() {
                         style={{ minHeight: 56, maxHeight: 160 }}
                     />
                     <button
-                        onClick={() => handleSend(input)}
-                        disabled={isStreaming || !input.trim()}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-brand transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        onClick={isStreaming ? handleCancel : () => handleSend(input)}
+                        disabled={!isStreaming && !input.trim()}
+                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 transition-all rounded ${
+                            isStreaming
+                                ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                : "text-gray-500 hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
+                        }`}
                         type="button"
-                        title="Gửi (Enter)"
+                        title={isStreaming ? "Hủy đánh máy (Escape)" : "Gửi (Enter)"}
                     >
                         {isStreaming ? (
-                            <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            // Stop icon
+                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="5" y="5" width="14" height="14" rx="2" />
                             </svg>
                         ) : (
                             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
