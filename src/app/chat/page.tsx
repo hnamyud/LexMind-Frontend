@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { chatService, StreamChunk, StepChunk } from "@/lib/chatService";
@@ -217,7 +217,7 @@ function AiMessage({
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function ChatPage() {
+function ChatPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { accessToken } = useAuthStore();
@@ -552,5 +552,18 @@ export default function ChatPage() {
                 </div>
             </div>
         </main>
+    );
+}
+
+// Wrap trong Suspense để fix lỗi prerender khi dùng useSearchParams
+export default function ChatPage() {
+    return (
+        <Suspense fallback={
+            <main className="flex-1 flex items-center justify-center">
+                <span className="text-gray-600 animate-pulse text-sm tracking-widest uppercase">Đang tải...</span>
+            </main>
+        }>
+            <ChatPageInner />
+        </Suspense>
     );
 }
