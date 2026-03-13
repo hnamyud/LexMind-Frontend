@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Public_Sans, Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import AuthProvider from "@/providers/AuthProvider";
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -42,7 +43,7 @@ export default function RootLayout({
       <body
         className={`${publicSans.variable} ${inter.variable} ${robotoMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

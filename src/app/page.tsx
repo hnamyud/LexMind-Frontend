@@ -1,8 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
+import { useEffect, useState } from "react";
+import StarryBackground from "@/components/home/StarryBackground";
 
 export default function HomePage() {
+  const { accessToken, logout } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div
       style={{ backgroundColor: "#050505", color: "#f1f5f9" }}
@@ -10,12 +20,9 @@ export default function HomePage() {
     >
       <div className="relative min-h-screen overflow-hidden">
         {/* Background Elements */}
-        <div className="absolute inset-0 star-field pointer-events-none"></div>
-        <div className="absolute top-1/4 left-1/4 comet-trail pointer-events-none"></div>
-        <div
-          className="absolute bottom-1/3 right-1/4 comet-trail pointer-events-none"
-          style={{ width: 300, opacity: 0.5 }}
-        ></div>
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <StarryBackground />
+        </div>
 
         {/* Navigation */}
         <header className="relative z-10 flex items-center justify-between px-6 py-8 md:px-12 lg:px-24">
@@ -54,13 +61,23 @@ export default function HomePage() {
             >
               Features
             </a>
-            <Link
-              className="text-sm font-medium tracking-widest uppercase transition-colors"
-              style={{ color: "#94a3b8" }}
-              href="/login"
-            >
-              Login
-            </Link>
+            {mounted && !!accessToken ? (
+              <button
+                onClick={() => logout()}
+                className="text-sm font-medium tracking-widest uppercase transition-colors hover:text-[#00f2ff]"
+                style={{ color: "#94a3b8" }}
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                className="text-sm font-medium tracking-widest uppercase transition-colors hover:text-[#00f2ff]"
+                style={{ color: "#94a3b8" }}
+                href="/login"
+              >
+                Login
+              </Link>
+            )}
             <Link
               href="/chat"
               className="text-xs font-bold px-6 py-2 rounded uppercase tracking-widest transition-all duration-300"
