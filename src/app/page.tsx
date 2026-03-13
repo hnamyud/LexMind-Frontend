@@ -2,12 +2,33 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import StarryBackground from "@/components/home/StarryBackground";
+import { authService } from "@/lib/authService";
+import { setAccessToken } from "@/lib/apiClient";
 
-export default function HomePage() {
+function HomePageInner() {
+  const { fetchProfile } = useAuthStore();
   const { accessToken, logout } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Xử lý Google OAuth2 callback: ?token=<access-token>
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (!token) return;
+
+    // Lưu token vào localStorage và store
+    setAccessToken(token);
+
+    // Fetch profile để cập nhật thông tin user vào store
+    fetchProfile().then(() => {
+      // Sau đó redirect sang /chat và xóa token khỏi URL
+      router.replace("/chat");
+    });
+  }, [searchParams, fetchProfile, router]);
 
   useEffect(() => {
     setMounted(true);
@@ -385,5 +406,13 @@ export default function HomePage() {
         </footer>
       </div>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageInner />
+    </Suspense>
   );
 }
