@@ -497,12 +497,12 @@ function ChatPageInner() {
     const showHero = messages.length === 0;
 
     return (
-        <main className="flex-1 flex flex-col relative overflow-hidden">
+        <main className="flex-1 flex flex-col relative overflow-hidden h-full">
             {/* Hero Section – chỉ hiện khi chưa có messages */}
             {showHero && (
-                <div className="flex flex-col items-center justify-center py-12 px-6">
-                    <div className="max-w-max">
-                        <h1 className="typing-effect text-3xl md:text-4xl font-bold text-white tracking-tight">
+                <div className="flex flex-col items-center justify-center py-8 px-4 md:py-12 md:px-6">
+                    <div className="max-w-max text-center">
+                        <h1 className="typing-effect text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
                             LexMind: Advanced Legal Intelligence.
                         </h1>
                     </div>
@@ -515,7 +515,7 @@ function ChatPageInner() {
             {/* Chat Stream */}
             <section
                 ref={chatStreamRef}
-                className="chat-stream flex-1 overflow-y-auto px-6 py-4 space-y-8 max-w-4xl mx-auto w-full"
+                className="chat-stream flex-1 overflow-y-auto px-4 py-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-32"
             >
                 {isLoadingHistory ? (
                     <div className="flex justify-center py-10">
@@ -526,7 +526,7 @@ function ChatPageInner() {
                         msg.role === "user" ? (
                             // User bubble
                             <div key={msg.id} className="flex flex-col items-end">
-                                <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[80%] text-sm leading-relaxed border border-gray-700 whitespace-pre-wrap">
+                                <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[90%] sm:max-w-[80%] text-sm leading-relaxed border border-gray-700 whitespace-pre-wrap">
                                     {msg.content}
                                 </div>
                                 <span className="text-[10px] text-gray-600 mt-1 uppercase tracking-widest mr-1">Bạn</span>
@@ -540,7 +540,7 @@ function ChatPageInner() {
             </section>
 
             {/* Input Area */}
-            <div className="p-6 bg-main shrink-0">
+            <div className="p-4 md:p-6 bg-main shrink-0 w-full absolute bottom-0 left-0">
                 <div className="max-w-4xl mx-auto relative group">
                     <textarea
                         ref={inputRef}
@@ -549,9 +549,9 @@ function ChatPageInner() {
                         onKeyDown={handleKeyDown}
                         rows={1}
                         disabled={isStreaming}
-                        className="w-full bg-[#161616] border border-gray-800 text-gray-200 text-sm py-4 pl-5 pr-14 focus:outline-none focus:border-brand focus:ring-0 rounded transition-all resize-none disabled:opacity-50 leading-relaxed"
-                        placeholder="Đặt câu hỏi pháp lý cho LexMind... (Enter để gửi, Shift+Enter xuống dòng)"
-                        style={{ minHeight: 56, maxHeight: 160 }}
+                        className="w-full bg-[#161616] border border-gray-800 text-gray-200 text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:border-brand focus:ring-0 rounded transition-all resize-none disabled:opacity-50 leading-relaxed"
+                        placeholder="Hỏi LexMind..."
+                        style={{ minHeight: 48, maxHeight: 120 }}
                     />
                     <button
                         onClick={isStreaming ? handleCancel : () => handleSend(input)}
@@ -576,8 +576,8 @@ function ChatPageInner() {
                         )}
                     </button>
                 </div>
-                <div className="text-center mt-3">
-                    <p className="text-[10px] text-gray-600 uppercase tracking-tighter">
+                <div className="text-center mt-2 md:mt-3">
+                    <p className="text-[9px] md:text-[10px] text-gray-600 uppercase tracking-tighter">
                         Powered by LexiLLM V2.4 Pro · Giới hạn 5 câu hỏi / phút
                     </p>
                 </div>

@@ -391,16 +391,16 @@ export default function LoginPage() {
                 <div className="flex w-full h-screen">
 
                     {/* ── Left: Form ── */}
-                    <div className="w-full lg:w-1/2 bg-white dark:bg-legal-charcoal flex flex-col justify-center px-8 sm:px-16 lg:px-24 xl:px-32 border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
-                        <div className="max-w-md w-full mx-auto py-12">
+                    <div className="w-full lg:w-1/2 bg-white dark:bg-legal-charcoal flex flex-col justify-center px-6 sm:px-16 lg:px-24 xl:px-32 border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
+                        <div className="max-w-md w-full mx-auto py-8 sm:py-12">
                             {/* Mobile logo */}
                             <div className="flex items-center gap-2 mb-8 lg:hidden">
                                 <span className="material-symbols-outlined text-login-primary text-3xl">gavel</span>
                                 <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 uppercase mono-text">LexMind</span>
                             </div>
 
-                            <header className="mb-8">
-                                <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
+                            <header className="mb-6 sm:mb-8">
+                                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2 tracking-tight">
                                     Welcome to LexMind
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400 font-medium">

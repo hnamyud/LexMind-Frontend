@@ -191,7 +191,7 @@ function TerminalDemo() {
         </div>
 
         {/* Navigation */}
-        <header className="relative z-10 flex items-center justify-between px-6 py-8 md:px-12 lg:px-24">
+        <header className="relative z-10 flex items-center justify-between px-4 py-6 md:px-12 lg:px-24">
           <div className="flex items-center gap-2 group cursor-pointer">
             <div
               className="size-8 rounded flex items-center justify-center"
@@ -259,7 +259,7 @@ function TerminalDemo() {
         </header>
 
         {/* Hero Section */}
-        <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-20 pb-32 text-center md:pt-32 lg:pt-48">
+        <main className="relative z-10 flex flex-col items-center justify-center px-4 pt-16 pb-24 text-center md:px-6 md:pt-32 lg:pt-48">
           {/* Beta Badge */}
           <div
             className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full"
@@ -287,8 +287,8 @@ function TerminalDemo() {
           </div>
 
           {/* Headline */}
-          <h1 className="max-w-4xl text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] text-white mb-8">
-            THE INTELLIGENCE <br />
+          <h1 className="max-w-4xl text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[1.1] md:leading-[0.9] text-white mb-6 md:mb-8">
+            THE INTELLIGENCE <br className="hidden md:block" />
             <span
               className="text-transparent bg-clip-text"
               style={{
@@ -301,7 +301,7 @@ function TerminalDemo() {
           </h1>
 
           <p
-            className="max-w-xl text-lg md:text-xl font-light mb-12 leading-relaxed"
+            className="max-w-xl text-base md:text-lg lg:text-xl font-light mb-10 md:mb-12 leading-relaxed"
             style={{ color: "#94a3b8" }}
           >
             Advanced legal AI designed for precision, speed, and
@@ -337,7 +337,7 @@ function TerminalDemo() {
           </div>
 
           {/* Terminal Mockup */}
-          <div className="mt-32 w-full max-w-5xl mx-auto px-4">
+          <div className="mt-20 md:mt-32 w-full max-w-5xl mx-auto px-4">
             <TerminalDemo />
           </div>
         </main>
@@ -345,12 +345,12 @@ function TerminalDemo() {
         {/* Features Grid */}
         <section
           id="features"
-          className="relative z-10 px-6 py-24 md:px-12 lg:px-24"
+          className="relative z-10 px-4 py-16 md:px-12 lg:px-24 md:py-24"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
         >
           <div className="grid grid-cols-1 md:grid-cols-3">
             <div
-              className="p-12 space-y-6 transition-colors cursor-default"
+              className="p-8 md:p-12 space-y-4 md:space-y-6 transition-colors cursor-default border-b border-white/5 md:border-b-0"
               style={{ backgroundColor: "rgba(255,255,255,0.01)" }}
             >
               <span
@@ -367,11 +367,9 @@ function TerminalDemo() {
               </p>
             </div>
             <div
-              className="p-12 space-y-6 transition-colors cursor-default"
+              className="p-8 md:p-12 space-y-4 md:space-y-6 transition-colors cursor-default border-b border-white/5 md:border-b-0 md:border-l md:border-r border-white/5"
               style={{
                 backgroundColor: "rgba(255,255,255,0.01)",
-                borderLeft: "1px solid rgba(255,255,255,0.05)",
-                borderRight: "1px solid rgba(255,255,255,0.05)",
               }}
             >
               <span
@@ -409,10 +407,10 @@ function TerminalDemo() {
 
         {/* Footer */}
         <footer
-          className="relative z-10 px-6 py-12 md:px-12 lg:px-24"
+          className="relative z-10 px-4 py-8 md:px-12 lg:px-24 md:py-12"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
             <div className="flex items-center gap-2 opacity-50 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
               <div className="size-6 bg-white rounded-sm flex items-center justify-center">
                 <span className="material-symbols-outlined text-black text-xs font-bold">
@@ -423,7 +421,7 @@ function TerminalDemo() {
                 LexMind
               </span>
             </div>
-            <div className="flex gap-8">
+            <div className="flex flex-wrap justify-center gap-6 md:gap-8">
               {["Privacy", "Terms", "Security"].map((item) => (
                 <a
                   key={item}

@@ -6,7 +6,12 @@ import { useAuthStore } from "@/store/authStore";
 import { useConversationStore } from "@/store/conversationStore";
 import { useEffect, useRef, useState, useCallback } from "react";
 
-export default function Sidebar() {
+interface SidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     const router = useRouter();
     const { user, accessToken, logout, fetchProfile, isLoading: authLoading } = useAuthStore();
     const {
@@ -55,6 +60,14 @@ export default function Sidebar() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // ── Close sidebar on mobile when navigating ──────────────────────────
+    useEffect(() => {
+        if (onClose && isOpen) {
+            onClose();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeId]);
 
     // ── Focus input khi bắt đầu rename ────────────────────────────────────
     useEffect(() => {
@@ -122,16 +135,33 @@ export default function Sidebar() {
 
     return (
         <>
-            <nav className="w-64 bg-sidebar border-r border-gray-800 flex flex-col h-full shrink-0">
-                {/* Logo */}
-                <div className="p-6 flex items-center gap-3">
-                    <div className="w-8 h-8 flex items-center justify-center bg-brand text-black rounded">
+            {/* Mobile Overlay */}
+            {isOpen && (
+                <div 
+                    className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+                    onClick={onClose}
+                />
+            )}
+
+            <nav className={`w-64 bg-sidebar border-r border-gray-800 flex flex-col h-full shrink-0 fixed md:relative z-50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                {/* Logo & Close Button */}
+                <div className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 flex items-center justify-center bg-brand text-black rounded">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
                                 strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
                         </svg>
                     </div>
                     <Link href="/" className="text-xl font-bold tracking-tight text-white">LexMind</Link>
+                    </div>
+                    
+                    {/* Close button for mobile */}
+                    {onClose && (
+                        <button onClick={onClose} className="md:hidden text-gray-400 hover:text-white">
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                    )}
                 </div>
 
                 {/* New Chat button */}
