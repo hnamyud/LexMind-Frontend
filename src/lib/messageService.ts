@@ -5,6 +5,7 @@ export interface ChatMessage {
     content: string;
     sender: "bot" | "user";
     createdAt: string;
+    thought?: string | null;
 }
 
 export interface MessageListResponse {

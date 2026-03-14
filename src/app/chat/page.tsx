@@ -196,15 +196,15 @@ function AiMessage({
                 )}
             </div>
 
-            <div className="flex items-center gap-3 mt-1 ml-1">
-                <span className="text-[10px] text-brand uppercase tracking-widest font-bold">LexMind</span>
+            <div className="flex items-center gap-3 mt-1.5 ml-1">
+                <span className="text-xs text-brand uppercase tracking-widest font-bold">LexMind</span>
                 {!msg.streaming && msg.content && onRegenerate && (
                     <button
                         onClick={() => onRegenerate(msg.id)}
-                        className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors flex items-center gap-1"
+                        className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
                         title="Tạo lại câu trả lời"
                     >
-                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                 d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
@@ -261,7 +261,8 @@ function ChatPageInner() {
                     const history: Message[] = list.map(m => ({
                         id: m.id,
                         role: (m.sender === "bot" ? "assistant" : "user") as "user" | "assistant",
-                        content: m.content
+                        content: m.content,
+                        thinking: m.thought || undefined
                     })).reverse();
                     setMessages(history);
                 })
@@ -515,7 +516,7 @@ function ChatPageInner() {
             {/* Chat Stream */}
             <section
                 ref={chatStreamRef}
-                className="chat-stream flex-1 overflow-y-auto px-4 py-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-32"
+                className="chat-stream flex-1 overflow-y-auto px-4 py-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-48"
             >
                 {isLoadingHistory ? (
                     <div className="flex justify-center py-10">
@@ -529,7 +530,7 @@ function ChatPageInner() {
                                 <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[90%] sm:max-w-[80%] text-sm leading-relaxed border border-gray-700 whitespace-pre-wrap">
                                     {msg.content}
                                 </div>
-                                <span className="text-[10px] text-gray-600 mt-1 uppercase tracking-widest mr-1">Bạn</span>
+                                <span className="text-xs text-gray-500 mt-1 uppercase tracking-widest mr-1">Bạn</span>
                             </div>
                         ) : (
                             // AI bubble
@@ -578,7 +579,7 @@ function ChatPageInner() {
                 </div>
                 <div className="text-center mt-2 md:mt-3">
                     <p className="text-[9px] md:text-[10px] text-gray-600 uppercase tracking-tighter">
-                        Powered by LexiLLM V2.4 Pro · Giới hạn 5 câu hỏi / phút
+                        LexMind có thể mắc sai sót
                     </p>
                 </div>
             </div>
