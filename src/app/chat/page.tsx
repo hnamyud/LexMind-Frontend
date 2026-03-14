@@ -112,7 +112,7 @@ function AiMessage({
 
     return (
         <div className="flex flex-col items-start">
-            <div className="ai-glow bg-ai-bubble text-gray-200 px-5 py-4 rounded max-w-[90%] text-sm leading-relaxed border border-gray-800">
+            <div className="ai-glow bg-ai-bubble text-gray-200 px-5 py-4 rounded max-w-[90%] text-sm leading-relaxed border border-gray-800 break-words">
                 {/* Steps đang xử lý */}
                 {msg.streaming && msg.steps && msg.steps.length > 0 && !msg.content && (
                     <div className="mb-2 space-y-1">
@@ -501,13 +501,13 @@ function ChatPageInner() {
         <main className="flex-1 flex flex-col relative overflow-hidden h-full">
             {/* Hero Section – chỉ hiện khi chưa có messages */}
             {showHero && (
-                <div className="flex flex-col items-center justify-center py-8 px-4 md:py-12 md:px-6">
-                    <div className="max-w-max text-center">
-                        <h1 className="typing-effect text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                <div className="flex flex-col items-center justify-center py-8 px-6 md:py-12 md:px-6">
+                    <div className="w-full max-w-2xl text-center">
+                        <h1 className="typing-effect text-xl sm:text-2xl md:text-4xl font-bold text-white tracking-tight break-words">
                             LexMind: Advanced Legal Intelligence.
                         </h1>
                     </div>
-                    <p className="mt-4 text-gray-500 text-sm md:text-base font-medium">
+                    <p className="mt-4 text-gray-500 text-sm md:text-base font-medium text-center px-2">
                         Sophisticated legal reasoning at your fingertips.
                     </p>
                 </div>
@@ -516,7 +516,7 @@ function ChatPageInner() {
             {/* Chat Stream */}
             <section
                 ref={chatStreamRef}
-                className="chat-stream flex-1 overflow-y-auto px-4 py-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-48"
+                className="chat-stream flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-48"
             >
                 {isLoadingHistory ? (
                     <div className="flex justify-center py-10">
@@ -527,7 +527,7 @@ function ChatPageInner() {
                         msg.role === "user" ? (
                             // User bubble
                             <div key={msg.id} className="flex flex-col items-end">
-                                <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[90%] sm:max-w-[80%] text-sm leading-relaxed border border-gray-700 whitespace-pre-wrap">
+                                <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[85%] text-sm leading-relaxed border border-gray-700 break-words whitespace-pre-wrap">
                                     {msg.content}
                                 </div>
                                 <span className="text-xs text-gray-500 mt-1 uppercase tracking-widest mr-1">Bạn</span>
