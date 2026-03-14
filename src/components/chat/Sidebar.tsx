@@ -141,16 +141,17 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                     bg-sidebar border-r border-gray-800 flex flex-col h-full shrink-0
                     fixed md:relative z-50
                     transition-all duration-300 ease-in-out
-                    ${isExpanded ? "w-64" : "w-16 md:w-16"}
+                    ${showFull ? "w-64" : "w-16"}
                     ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
                 `}
             >
                 {/* ─── Header: Logo + Toggle ─── */}
-                <div className={`flex items-center h-16 shrink-0 border-b border-gray-800/60 ${showFull ? "px-4 justify-between" : "px-0 justify-center"}`}>
-                    {/* Logo icon — clicking toggles expand on desktop */}
+                <div className={`flex items-center h-16 shrink-0 border-b border-gray-800/60 overflow-hidden ${showFull ? "px-4 gap-3" : "px-0 justify-center"}`}>
+                    {/* Logo icon — always visible */}
                     <button
                         onClick={onToggleExpand}
-                        className="hidden md:flex w-9 h-9 items-center justify-center bg-brand text-black rounded hover:opacity-90 transition-all duration-200 shrink-0"
+                        className="w-9 h-9 flex-shrink-0 items-center justify-center bg-brand text-black rounded hover:opacity-90 transition-all duration-200
+                            hidden md:flex"
                         title={isExpanded ? "Thu gọn sidebar" : "Mở rộng sidebar"}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,28 +160,30 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                         </svg>
                     </button>
 
-                    {/* LexMind text + mobile close — only when expanded */}
-                    {showFull && (
-                        <div className="flex items-center justify-between flex-1 ml-3">
-                            <Link href="/" className="text-lg font-bold tracking-tight text-white">
-                                LexMind
-                            </Link>
-                            {/* Close button for mobile */}
-                            {onClose && (
-                                <button onClick={onClose} className="md:hidden text-gray-400 hover:text-white transition-colors">
-                                    <span className="material-symbols-outlined text-[20px]">close</span>
-                                </button>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Mobile: always show logo icon */}
-                    <div className="md:hidden flex w-9 h-9 items-center justify-center bg-brand text-black rounded shrink-0">
+                    {/* Mobile logo icon (non-clickable) */}
+                    <div className="md:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center bg-brand text-black rounded">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
                                 strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
                         </svg>
                     </div>
+
+                    {/* LexMind text + close button — only when full */}
+                    {showFull && (
+                        <>
+                            <Link href="/" className="flex-1 min-w-0 text-lg font-bold tracking-tight text-white truncate">
+                                LexMind
+                            </Link>
+                            {onClose && (
+                                <button
+                                    onClick={onClose}
+                                    className="md:hidden flex-shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors rounded hover:bg-gray-800"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
 
                 {/* ─── New Chat Button ─── */}
