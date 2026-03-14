@@ -47,11 +47,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 success = await refresh();
             }
 
-            // Nếu thất bại hoàn toàn (token refresh lỗi/hết hạn), và không phải ở trang login/register thì redirect
-            if (!success) {
-                if (pathname && !pathname.startsWith("/login") && !pathname.startsWith("/register")) {
-                    router.push("/login"); // Về màn login
-                }
+            // Nếu thất bại hoàn toàn (token refresh lỗi/hết hạn), và không phải ở trang public thì redirect
+            const publicRoutes = ["/", "/login", "/register"];
+            const isPublic = publicRoutes.some(
+                (route) => pathname === route || pathname?.startsWith(route + "/")
+            );
+            if (!success && !isPublic) {
+                router.push("/login");
             }
         };
 
