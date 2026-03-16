@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, Suspense } from "react";
+import React, { useEffect, useRef, useState, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
 import { chatService, StreamChunk, StepChunk } from "@/lib/chatService";
 import { messageService } from "@/lib/messageService";
 import { useAuthStore } from "@/store/authStore";
 import { useAuthHasHydrated } from "@/store/authStore";
 import { useConversationStore } from "@/store/conversationStore";
 import { useRouter } from "next/navigation";
+import LawDetailPanel from "@/components/chat/LawDetailPanel";
+import { refTextToNodeId } from "@/lib/lawService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MessageStep {
@@ -19,8 +21,9 @@ interface MessageStep {
 
 interface Source {
     type: string;
-    id: string;
-    score: number;
+    id?: string;
+    score?: number;
+    url?: string;
 }
 
 interface Message {
@@ -33,6 +36,83 @@ interface Message {
     sources?: Source[];
     streaming?: boolean;       // đang stream
     error?: string;
+}
+
+// ─── Regex to detect law references like [Điều 23, Khoản 1, ...] ─────────────
+const LAW_REF_REGEX = /\[([^\]]*?Điều[^\]]*?)\]/g;
+
+/**
+ * Render text nodes with law references as clickable buttons.
+ * Detects patterns like [Điều 23, Khoản 1, Nghị định 168/2024/NĐ-CP]
+ */
+function LawRefText({ text, onLawClick }: { text: string; onLawClick?: (nodeId: string) => void }) {
+    if (!onLawClick) return <>{text}</>;
+
+    const parts: (string | React.ReactElement)[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    const regex = new RegExp(LAW_REF_REGEX.source, 'g');
+
+    while ((match = regex.exec(text)) !== null) {
+        // Text trước match
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+
+        const fullMatch = match[0]; // e.g. "[Điều 23, Khoản 1, Nghị định 168/2024/NĐ-CP]"
+        const innerText = match[1]; // e.g. "Điều 23, Khoản 1, Nghị định 168/2024/NĐ-CP"
+        const nodeId = refTextToNodeId(fullMatch);
+
+        if (nodeId) {
+            parts.push(
+                <button
+                    key={`law-${match.index}`}
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); onLawClick(nodeId); }}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded bg-brand/10 border border-brand/25 text-brand hover:bg-brand/20 hover:border-brand/40 transition-all cursor-pointer text-[13px] font-medium leading-snug align-baseline"
+                    title={`Tra cứu: ${innerText}`}
+                >
+                    <svg className="w-3 h-3 shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    {innerText}
+                </button>
+            );
+        } else {
+            parts.push(fullMatch);
+        }
+
+        lastIndex = match.index + fullMatch.length;
+    }
+
+    // Text sau match cuối
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    if (parts.length === 0) return <>{text}</>;
+    return <>{parts}</>;
+}
+
+/** Recursively process React children, replacing string nodes with law-ref-aware text */
+function processChildren(
+    children: React.ReactNode,
+    onLawClick?: (nodeId: string) => void
+): React.ReactNode {
+    return React.Children.map(children, (child) => {
+        if (typeof child === "string") {
+            return <LawRefText text={child} onLawClick={onLawClick} />;
+        }
+        if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
+            return React.cloneElement(
+                child,
+                {},
+                processChildren(child.props.children, onLawClick)
+            );
+        }
+        return child;
+    });
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -104,9 +184,11 @@ function ThinkingBlock({
 function AiMessage({
     msg,
     onRegenerate,
+    onLawClick,
 }: {
     msg: Message;
     onRegenerate?: (id: string) => void;
+    onLawClick?: (nodeId: string) => void;
 }) {
     const lastStep = msg.steps?.[msg.steps.length - 1];
 
@@ -142,7 +224,25 @@ function AiMessage({
                 {msg.content ? (
                     <div>
                         <div className="prose prose-invert prose-sm max-w-none prose-p:text-gray-200 prose-headings:text-brand prose-strong:text-gray-100 prose-code:text-brand prose-li:text-gray-300">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                            <ReactMarkdown
+                                components={{
+                                    // Override text rendering inside <p>, <li>, <strong>, etc.
+                                    p: ({ children }) => {
+                                        return (
+                                            <p>
+                                                {processChildren(children, onLawClick)}
+                                            </p>
+                                        );
+                                    },
+                                    li: ({ children }) => {
+                                        return (
+                                            <li>
+                                                {processChildren(children, onLawClick)}
+                                            </li>
+                                        );
+                                    },
+                                }}
+                            >{msg.content}</ReactMarkdown>
                             {msg.streaming && !msg.currentProcess && (
                                 <span className="inline-block w-1.5 h-4 bg-brand ml-0.5 animate-pulse align-middle" />
                             )}
@@ -176,24 +276,71 @@ function AiMessage({
                 )}
 
                 {/* Sources */}
-                {!msg.streaming && msg.sources && msg.sources.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-800">
-                        <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5">Nguồn tham chiếu</p>
-                        <div className="flex flex-wrap gap-1.5">
-                            {msg.sources.map((src, idx) => (
-                                <span
-                                    key={`src-${src.id}-${idx}`}
-                                    className="px-2 py-0.5 text-[10px] rounded border border-gray-700 text-gray-500 font-mono"
-                                >
-                                    {src.id}
-                                    <span className="ml-1 text-brand/60">
-                                        {(src.score * 100).toFixed(0)}%
-                                    </span>
-                                </span>
-                            ))}
+                {!msg.streaming && msg.sources && msg.sources.length > 0 && (() => {
+                    const kgSources = msg.sources!.filter(s => s.type === 'knowledge_graph' && s.id);
+                    const EXCLUDED_EXTS = /\.(pdf|docx?|xlsx?|pptx?|zip|rar)(\?.*)?$/i;
+                    const webSources = msg.sources!.filter(s => s.type === 'web' && s.url && !EXCLUDED_EXTS.test(s.url));
+                    return (
+                        <div className="mt-3 pt-3 border-t border-gray-800">
+                            {/* Knowledge graph sources */}
+                            {kgSources.length > 0 && (
+                                <>
+                                    <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5">Nguồn tham chiếu</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {kgSources.map((src, idx) => (
+                                            <button
+                                                key={`src-${src.id}-${idx}`}
+                                                type="button"
+                                                onClick={() => onLawClick?.(src.id!)}
+                                                className="px-2 py-0.5 text-[10px] rounded border border-gray-700 text-gray-500 font-mono hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-all cursor-pointer"
+                                                title={`Tra cứu: ${src.id}`}
+                                            >
+                                                {src.id}
+                                                {src.score != null && (
+                                                    <span className="ml-1 text-brand/60">
+                                                        {(src.score * 100).toFixed(0)}%
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Web reference sources */}
+                            {webSources.length > 0 && (
+                                <div className={kgSources.length > 0 ? "mt-3" : ""}>
+                                    <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                        </svg>
+                                        Tham khảo từ web
+                                    </p>
+                                    <div className="flex flex-col gap-1.5">
+                                        {webSources.map((src, idx) => {
+                                            let hostname = '';
+                                            try { hostname = new URL(src.url!).hostname; } catch { hostname = src.url!; }
+                                            return (
+                                                <a
+                                                    key={`web-${idx}`}
+                                                    href={src.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="group/link flex items-center gap-2 px-2.5 py-1.5 rounded border border-gray-700/60 hover:border-brand/40 bg-gray-900/40 hover:bg-brand/5 transition-all text-[11px] text-gray-400 hover:text-brand"
+                                                >
+                                                    <svg className="w-3.5 h-3.5 shrink-0 text-gray-600 group-hover/link:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                    <span className="truncate font-mono">{hostname}</span>
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
 
             <div className="flex items-center gap-3 mt-1.5 ml-1">
@@ -232,6 +379,7 @@ function ChatPageInner() {
     const [conversationId, setConversationId] = useState<string | undefined>(undefined);
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [lawPanelNodeId, setLawPanelNodeId] = useState<string | null>(null);
     
     const isStreamingRef = useRef(false);
     useEffect(() => {
@@ -262,7 +410,8 @@ function ChatPageInner() {
                         id: m.id,
                         role: (m.sender === "bot" ? "assistant" : "user") as "user" | "assistant",
                         content: m.content,
-                        thinking: m.thought || undefined
+                        thinking: m.thought || undefined,
+                        sources: m.metadata?.sources || undefined,
                     })).reverse();
                     setMessages(history);
                 })
@@ -301,6 +450,7 @@ function ChatPageInner() {
     const handleSend = useCallback(async (question: string) => {
         if (!question.trim() || isStreaming) return;
 
+        const isNewChat = !conversationId;
 
         setInput("");
         setIsStreaming(true);
@@ -327,6 +477,11 @@ function ChatPageInner() {
         };
 
         setMessages((prev) => [...prev, userMsg, aiMsg]);
+
+        // Đẩy conversation kên đầu (nếu là cũ)
+        if (conversationId) {
+            useConversationStore.getState().bumpConversation(conversationId);
+        }
 
         try {
             await chatService.askStream(
@@ -398,6 +553,17 @@ function ChatPageInner() {
         } finally {
             setIsStreaming(false);
             abortRef.current = null;
+            
+            if (isNewChat) {
+                // Refresh list chat sau khi trả lời xong câu đầu tiên để cập nhật AI generated title
+                setTimeout(() => {
+                    useConversationStore.getState().fetchConversations(1);
+                }, 2000);
+                // Background refresh dự phòng trường hợp API generate title tốn nhiều thời gian hơn
+                setTimeout(() => {
+                    useConversationStore.getState().fetchConversations(1);
+                }, 5000);
+            }
         }
     }, [isStreaming, conversationId, updateLastMessage, addConversation, setActiveId]);
 
@@ -534,7 +700,7 @@ function ChatPageInner() {
                             </div>
                         ) : (
                             // AI bubble
-                            <AiMessage key={msg.id} msg={msg} onRegenerate={handleRegenerate} />
+                            <AiMessage key={msg.id} msg={msg} onRegenerate={handleRegenerate} onLawClick={setLawPanelNodeId} />
                         )
                     )
                 )}
@@ -583,6 +749,12 @@ function ChatPageInner() {
                     </p>
                 </div>
             </div>
+
+            {/* Law Detail Panel */}
+            <LawDetailPanel
+                nodeId={lawPanelNodeId}
+                onClose={() => setLawPanelNodeId(null)}
+            />
         </main>
     );
 }

@@ -49,18 +49,150 @@ html {
   transform: rotate(-15deg);
 }
 
+
+
 /* ===== Chat Scrollbar ===== */
+.chat-stream {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 255, 0.25) transparent;
+  scroll-behavior: smooth;
+}
+
 .chat-stream::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .chat-stream::-webkit-scrollbar-track {
   background: transparent;
+  margin-block: 8px;
 }
 
 .chat-stream::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.0) 0%,
+    rgba(0, 255, 255, 0.3) 30%,
+    rgba(0, 255, 255, 0.5) 60%,
+    rgba(0, 255, 255, 0.2) 100%
+  );
+  border-radius: 100px;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chat-stream::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 255, 255, 0.2) 0%,
+    rgba(0, 255, 255, 0.6) 40%,
+    rgba(0, 255, 255, 0.8) 70%,
+    rgba(0, 255, 255, 0.3) 100%
+  );
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4), 0 0 2px rgba(0, 255, 255, 0.6);
+}
+
+.chat-stream::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+}
+
+/* Mobile: hide scrollbar track, show only on interaction */
+@media (max-width: 768px) {
+  .chat-stream {
+    scrollbar-width: none;
+  }
+
+  .chat-stream::-webkit-scrollbar {
+    width: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .chat-stream::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.4);
+    border-radius: 100px;
+  }
+
+  .chat-stream:active::-webkit-scrollbar,
+  .chat-stream:focus-within::-webkit-scrollbar {
+    opacity: 1;
+  }
+}
+
+/* ===== Sidebar Scrollbar ===== */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 255, 0.15) transparent;
+  scroll-behavior: smooth;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.15);
+  border-radius: 100px;
+}
+
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.35);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4), 0 0 2px rgba(0, 255, 255, 0.5);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 255, 255, 0.8);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+/* Mobile: sidebar scrollbar fully hidden (sidebar becomes overlay) */
+@media (max-width: 768px) {
+  .sidebar-scroll {
+    scrollbar-width: none;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+
+/* ===== Law Panel Scrollbar ===== */
+.law-panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
+  scroll-behavior: smooth;
+}
+
+.law-panel-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.law-panel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 8px;
+}
+
+.law-panel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.2);
+  border-radius: 100px;
+}
+
+.law-panel-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.4);
+}
+
+.law-panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.6);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
 }
 
 /* ===== AI Glow Bubble ===== */

@@ -1,11 +1,21 @@
 import { apiClient } from "./apiClient";
 
+export interface ChatMessageSource {
+    type: string;
+    id?: string;
+    score?: number;
+    url?: string;
+}
+
 export interface ChatMessage {
     id: string;
     content: string;
     sender: "bot" | "user";
     createdAt: string;
     thought?: string | null;
+    metadata?: {
+        sources?: ChatMessageSource[];
+    } | null;
 }
 
 export interface MessageListResponse {

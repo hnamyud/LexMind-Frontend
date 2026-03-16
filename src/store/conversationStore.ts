@@ -20,6 +20,7 @@ interface ConversationState {
     loadMore: () => Promise<void>;
     setActiveId: (id: string | null) => void;
     addConversation: (conv: Conversation) => void;
+    bumpConversation: (id: string) => void;
     updateConversation: (id: string, payload: UpdateConversationPayload) => Promise<void>;
     deleteConversation: (id: string) => Promise<void>;
     clearError: () => void;
@@ -72,6 +73,19 @@ export const useConversationStore = create<ConversationState>()((set, get) => ({
             conversations: [conv, ...state.conversations],
             activeId: conv.id,
         })),
+
+    bumpConversation: (id) =>
+        set((state) => {
+            const index = state.conversations.findIndex((c) => c.id === id);
+            if (index === -1) return state;
+            
+            const copy = [...state.conversations];
+            const target = { ...copy[index], updatedAt: new Date().toISOString() };
+            copy.splice(index, 1);
+            copy.unshift(target);
+            
+            return { conversations: copy };
+        }),
 
     updateConversation: async (id, payload) => {
         // Optimistic update

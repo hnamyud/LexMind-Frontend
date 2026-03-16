@@ -201,7 +201,7 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                 </div>
 
                 {/* ─── Conversation List ─── */}
-                <div className={`flex-1 overflow-y-auto pb-2 ${showFull ? "px-3 space-y-4" : "px-2"}`}>
+                <div className={`sidebar-scroll flex-1 overflow-y-auto pb-2 ${showFull ? "px-3 space-y-4" : "px-2"}`}>
                     {showFull && (
                         // Expanded: full list
                         convLoading && conversations.length === 0 ? (
@@ -408,7 +408,14 @@ function groupByDate(conversations: import("@/lib/conversationService").Conversa
         "Cũ hơn": [],
     };
 
-    for (const conv of conversations) {
+    // Soft conversations by descending updatedAt/createdAt to ensure newest is at the top
+    const sortedConversations = [...conversations].sort((a, b) => {
+        const timeA = new Date(a.updatedAt ?? a.createdAt).getTime();
+        const timeB = new Date(b.updatedAt ?? b.createdAt).getTime();
+        return timeB - timeA;
+    });
+
+    for (const conv of sortedConversations) {
         const d = new Date(conv.updatedAt ?? conv.createdAt);
         if (d >= today) groups["Hôm nay"].push(conv);
         else if (d >= yesterday) groups["Hôm qua"].push(conv);
