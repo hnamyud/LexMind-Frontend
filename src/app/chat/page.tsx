@@ -435,7 +435,7 @@ function ChatPageInner() {
 
     // Redirect nếu chưa đăng nhập (chỉ sau khi Zustand đã rehydrate)
     useEffect(() => {
-        if (hasHydrated && !accessToken) router.push("/login");
+        if (hasHydrated && !accessToken) router.replace("/login");
     }, [hasHydrated, accessToken, router]);
 
     const updateLastMessage = useCallback((updater: (msg: Message) => Message) => {

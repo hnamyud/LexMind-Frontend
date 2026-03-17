@@ -316,8 +316,8 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                             )}
                             <button
                                 id="avatar-btn"
-                                onClick={() => showFull ? setPopoverOpen((prev) => !prev) : handleLogout()}
-                                title={showFull ? "" : `${user.name} — Đăng xuất`}
+                                onClick={() => showFull ? setPopoverOpen((prev) => !prev) : onToggleExpand()}
+                                title={showFull ? "" : user.name}
                                 className={`w-full flex items-center rounded transition-colors cursor-pointer select-none ${showFull ? "gap-2 px-3 py-2" : "justify-center py-2"} ${popoverOpen ? "bg-gray-700" : "bg-gray-800/60 hover:bg-gray-700/70"}`}
                             >
                                 <div className="w-7 h-7 rounded-full bg-brand/20 border border-brand/40 flex items-center justify-center text-xs font-bold text-brand uppercase shrink-0">
