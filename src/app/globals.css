@@ -195,6 +195,40 @@ html {
   box-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
 }
 
+/* ===== Chat Input Scrollbar ===== */
+textarea.chat-input-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
+}
+
+textarea.chat-input-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea.chat-input-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 4px;
+}
+
+textarea.chat-input-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.2);
+  border-radius: 100px;
+}
+
+textarea.chat-input-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 255, 0.35);
+}
+
+textarea.chat-input-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 6px rgba(0, 255, 255, 0.3), 0 0 2px rgba(0, 255, 255, 0.4);
+}
+
+textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 255, 255, 0.7);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+}
+
 /* ===== AI Glow Bubble ===== */
 .ai-glow {
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.1), inset 0 0 1px rgba(0, 255, 255, 0.3);

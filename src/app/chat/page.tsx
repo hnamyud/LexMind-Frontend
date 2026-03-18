@@ -380,7 +380,19 @@ function ChatPageInner() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [lawPanelNodeId, setLawPanelNodeId] = useState<string | null>(null);
-    
+    const [isOverflowing, setIsOverflowing] = useState(false);
+
+    // Auto-resize textarea based on content
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.style.height = "auto";
+            const currentScrollHeight = inputRef.current.scrollHeight;
+            inputRef.current.style.height = `${currentScrollHeight}px`;
+            // Cập nhật state nếu scrollHeight vượt quá maxHeight của CSS
+            setIsOverflowing(currentScrollHeight >= 240);
+        }
+    }, [input]);
+
     const isStreamingRef = useRef(false);
     useEffect(() => {
         isStreamingRef.current = isStreaming;
@@ -540,8 +552,15 @@ function ChatPageInner() {
             , abort.signal);
         } catch (err) {
             if ((err as any)?.name === "AbortError" || abort.signal.aborted) {
-                // User chủ động hủy — đấu streaming: false, giữ lại content đã có
-                updateLastMessage((msg) => ({ ...msg, streaming: false }));
+                // User chủ động hủy
+                updateLastMessage((msg) => ({
+                    ...msg,
+                    streaming: false,
+                    content: msg.content 
+                        ? `${msg.content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*` 
+                        : "> *Thao tác bị hủy bỏ bởi người dùng.*",
+                    currentProcess: undefined
+                }));
             } else {
                 const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
                 updateLastMessage((msg) => ({
@@ -631,7 +650,14 @@ function ChatPageInner() {
                     const idx = prev.findIndex((m) => m.id === messageId);
                     if (idx === -1) return prev;
                     const copy = [...prev];
-                    copy[idx] = { ...copy[idx], streaming: false };
+                    copy[idx] = {
+                        ...copy[idx],
+                        streaming: false,
+                        content: copy[idx].content 
+                            ? `${copy[idx].content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*` 
+                            : "> *Thao tác bị hủy bỏ bởi người dùng.*",
+                        currentProcess: undefined
+                    };
                     return copy;
                 });
             } else {
@@ -716,14 +742,14 @@ function ChatPageInner() {
                         onKeyDown={handleKeyDown}
                         rows={1}
                         disabled={isStreaming}
-                        className="w-full bg-[#161616] border border-gray-800 text-gray-200 text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:border-brand focus:ring-0 rounded transition-all resize-none disabled:opacity-50 leading-relaxed"
+                        className={`w-full bg-[#161616] border border-gray-800 text-gray-200 text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:border-brand focus:ring-0 rounded transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
                         placeholder="Hỏi LexMind..."
-                        style={{ minHeight: 48, maxHeight: 120 }}
+                        style={{ minHeight: 48, maxHeight: 240 }}
                     />
                     <button
                         onClick={isStreaming ? handleCancel : () => handleSend(input)}
                         disabled={!isStreaming && !input.trim()}
-                        className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 transition-all rounded ${
+                        className={`absolute right-3 bottom-2.5 md:bottom-3 p-2 transition-all rounded ${
                             isStreaming
                                 ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                 : "text-gray-500 hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
