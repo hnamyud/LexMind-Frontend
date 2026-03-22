@@ -277,3 +277,28 @@ textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
 .mono-text {
   font-family: "Roboto Mono", monospace;
 }
+
+/* ===== Admin Scrollbar ===== */
+.admin-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.admin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(236, 91, 19, 0.25);
+  border-radius: 4px;
+}
+
+.admin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 91, 19, 0.45);
+}
+
+.admin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(236, 91, 19, 0.25) transparent;
+}
+

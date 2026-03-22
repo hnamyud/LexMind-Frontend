@@ -11,6 +11,8 @@ import { useConversationStore } from "@/store/conversationStore";
 import { useRouter } from "next/navigation";
 import LawDetailPanel from "@/components/chat/LawDetailPanel";
 import { refTextToNodeId } from "@/lib/lawService";
+import { feedbackService } from "@/lib/feedbackService";
+import FeedbackModal from "@/components/chat/FeedbackModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MessageStep {
@@ -131,6 +133,42 @@ function StepIndicator({ steps }: { steps: MessageStep[] }) {
     );
 }
 
+/** Nút copy chung với state success */
+function CopyButton({ text, className, label }: { text: string; className?: string; label?: string }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy!", err);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className={className || "text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"}
+            title="Sao chép"
+            type="button"
+        >
+            {copied ? (
+                <svg className="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+            ) : (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+            )}
+            {label && <span>{label}</span>}
+        </button>
+    );
+}
+
 /** Khối thinking – thu gọn được, màu mờ */
 function ThinkingBlock({
     content,
@@ -185,12 +223,17 @@ function AiMessage({
     msg,
     onRegenerate,
     onLawClick,
+    onLike,
+    onDislike,
 }: {
     msg: Message;
     onRegenerate?: (id: string) => void;
     onLawClick?: (nodeId: string) => void;
+    onLike?: (id: string) => void;
+    onDislike?: (id: string) => void;
 }) {
     const lastStep = msg.steps?.[msg.steps.length - 1];
+    const [localFeedback, setLocalFeedback] = useState<'like' | 'dislike' | null>(null);
 
     return (
         <div className="flex flex-col items-start">
@@ -345,18 +388,55 @@ function AiMessage({
 
             <div className="flex items-center gap-3 mt-1.5 ml-1">
                 <span className="text-xs text-brand uppercase tracking-widest font-bold">LexMind</span>
-                {!msg.streaming && msg.content && onRegenerate && (
-                    <button
-                        onClick={() => onRegenerate(msg.id)}
-                        className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
-                        title="Tạo lại câu trả lời"
-                    >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Tạo lại
-                    </button>
+                {!msg.streaming && msg.content && (
+                    <div className="flex items-center gap-2">
+                        {onLike && (
+                            <button
+                                onClick={() => {
+                                    setLocalFeedback('like');
+                                    onLike(msg.id);
+                                }}
+                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'like' ? 'text-brand' : 'text-gray-500 hover:text-gray-300'}`}
+                                title="Thích câu trả lời này"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                            </button>
+                        )}
+                        {onDislike && (
+                            <button
+                                onClick={() => {
+                                    setLocalFeedback('dislike');
+                                    onDislike(msg.id);
+                                }}
+                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'dislike' ? 'text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
+                                title="Không thích câu trả lời này"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                                </svg>
+                            </button>
+                        )}
+                        <CopyButton 
+                            text={msg.content} 
+                            className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 ml-1 pl-2 border-l border-gray-800" 
+                            label="Sao chép" 
+                        />
+                        {onRegenerate && (
+                            <button
+                                onClick={() => onRegenerate(msg.id)}
+                                className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 ml-1 pl-2 border-l border-gray-800"
+                                title="Tạo lại câu trả lời"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Tạo lại
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
         </div>
@@ -381,6 +461,30 @@ function ChatPageInner() {
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [lawPanelNodeId, setLawPanelNodeId] = useState<string | null>(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
+    const [dislikeModalMessageId, setDislikeModalMessageId] = useState<string | null>(null);
+
+    const handleLike = useCallback(async (messageId: string) => {
+        try {
+            await feedbackService.submitFeedback(messageId, true);
+        } catch (error) {
+            console.error("Failed to submit like feedback", error);
+        }
+    }, []);
+
+    const handleDislike = useCallback((messageId: string) => {
+        setDislikeModalMessageId(messageId);
+    }, []);
+
+    const handleSubmitDislikeReason = useCallback(async (reason: string) => {
+        if (!dislikeModalMessageId) return;
+        try {
+            await feedbackService.submitFeedback(dislikeModalMessageId, false, reason);
+        } catch (error) {
+            console.error("Failed to submit dislike feedback", error);
+        } finally {
+            setDislikeModalMessageId(null);
+        }
+    }, [dislikeModalMessageId]);
 
     // Auto-resize textarea based on content
     useEffect(() => {
@@ -718,15 +822,28 @@ function ChatPageInner() {
                     messages.map((msg) =>
                         msg.role === "user" ? (
                             // User bubble
-                            <div key={msg.id} className="flex flex-col items-end">
-                                <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[85%] text-sm leading-relaxed border border-gray-700 break-words whitespace-pre-wrap">
-                                    {msg.content}
+                            <div key={msg.id} className="flex flex-col items-end group w-full">
+                                <div className="flex items-center justify-end gap-2 w-full">
+                                    <CopyButton 
+                                        text={msg.content} 
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-gray-500 hover:text-gray-300 rounded hover:bg-gray-800 shrink-0" 
+                                    />
+                                    <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[85%] text-sm leading-relaxed border border-gray-700 break-words whitespace-pre-wrap">
+                                        {msg.content}
+                                    </div>
                                 </div>
                                 <span className="text-xs text-gray-500 mt-1 uppercase tracking-widest mr-1">Bạn</span>
                             </div>
                         ) : (
                             // AI bubble
-                            <AiMessage key={msg.id} msg={msg} onRegenerate={handleRegenerate} onLawClick={setLawPanelNodeId} />
+                            <AiMessage 
+                                key={msg.id} 
+                                msg={msg} 
+                                onRegenerate={handleRegenerate} 
+                                onLawClick={setLawPanelNodeId}
+                                onLike={handleLike}
+                                onDislike={handleDislike}
+                            />
                         )
                     )
                 )}
@@ -781,6 +898,14 @@ function ChatPageInner() {
                 nodeId={lawPanelNodeId}
                 onClose={() => setLawPanelNodeId(null)}
             />
+
+            {/* Feedback Modal */}
+            {dislikeModalMessageId && (
+                <FeedbackModal
+                    onClose={() => setDislikeModalMessageId(null)}
+                    onSubmit={handleSubmitDislikeReason}
+                />
+            )}
         </main>
     );
 }
