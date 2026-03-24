@@ -23,10 +23,14 @@ function HomePageInner() {
     // Lưu token vào localStorage và store
     setAccessToken(token);
 
-    // Fetch profile để cập nhật thông tin user vào store
     fetchProfile().then(() => {
-      // Sau đó redirect sang /chat và xóa token khỏi URL
-      router.replace("/chat");
+      // Lấy user từ store để check role
+      const user = useAuthStore.getState().user as Record<string, unknown> | null;
+      if (user?.role === "ADMIN") {
+        router.replace("/admin");
+      } else {
+        router.replace("/chat");
+      }
     });
   }, [searchParams, fetchProfile, router]);
 

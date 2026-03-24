@@ -272,7 +272,12 @@ export default function LoginPage() {
         setSuccessMessage(null);
         try {
             await login({ email: loginEmail, password: loginPassword });
-            router.push("/chat");
+            const user = useAuthStore.getState().user as Record<string, unknown> | null;
+            if (user?.role === "ADMIN") {
+                router.push("/admin");
+            } else {
+                router.push("/chat");
+            }
         } catch { /* error stored in zustand */ }
     };
 
