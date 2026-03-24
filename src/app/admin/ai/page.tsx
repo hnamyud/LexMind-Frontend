@@ -1,9 +1,19 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { adminService, AIPerformanceResponse, AIErrorsResponse } from "@/lib/adminService";
+import { adminService, AIPerformanceResponse, AIErrorsResponse, AICacheResponse } from "@/lib/adminService";
 
-function MetricCard({ label, value, sub, accent = "text-white" }: { label: string; value: string; sub?: string; accent?: string }) {
+function MetricCard({
+    label,
+    value,
+    sub,
+    accent = "text-white",
+}: {
+    label: string;
+    value: string;
+    sub?: string;
+    accent?: string;
+}) {
     return (
         <div className="bg-[#080808] border border-gray-800/40 rounded-lg p-4">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono mb-1">{label}</p>
@@ -13,20 +23,57 @@ function MetricCard({ label, value, sub, accent = "text-white" }: { label: strin
     );
 }
 
+/** Mini bar comparing two ms values visually */
+function ResponseTimeBar({
+    cachedMs,
+    nonCachedMs,
+    label,
+}: {
+    cachedMs: number;
+    nonCachedMs: number;
+    label: string;
+}) {
+    const max = nonCachedMs;
+    const cachedPct = Math.round((cachedMs / max) * 100);
+    return (
+        <div className="space-y-1">
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">{label}</p>
+            <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                        style={{ width: `${cachedPct}%` }}
+                    />
+                </div>
+                <span className="text-[10px] text-emerald-400 font-mono w-16 text-right">{cachedMs}ms</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-500 rounded-full" style={{ width: "100%" }} />
+                </div>
+                <span className="text-[10px] text-orange-400 font-mono w-16 text-right">{nonCachedMs}ms</span>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminAIPage() {
     const [perf, setPerf] = useState<AIPerformanceResponse | null>(null);
     const [errors, setErrors] = useState<AIErrorsResponse | null>(null);
+    const [cache, setCache] = useState<AICacheResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const [p, e] = await Promise.allSettled([
+            const [p, e, c] = await Promise.allSettled([
                 adminService.getAIPerformance(),
                 adminService.getAIErrors({ limit: 20 }),
+                adminService.getAICache(),
             ]);
             if (p.status === "fulfilled") setPerf(p.value);
             if (e.status === "fulfilled") setErrors(e.value);
+            if (c.status === "fulfilled") setCache(c.value);
         } catch (err) {
             console.error("Failed to fetch AI data", err);
         } finally {
@@ -34,30 +81,41 @@ export default function AdminAIPage() {
         }
     }, []);
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20">
-                <span className="text-gray-500 animate-pulse text-sm tracking-widest uppercase font-mono">Đang tải dữ liệu AI...</span>
+                <span className="text-gray-500 animate-pulse text-sm tracking-widest uppercase font-mono">
+                    Đang tải dữ liệu AI...
+                </span>
             </div>
         );
     }
 
+    // Derive hit-rate ring degree for the donut
+    const hitPct = cache?.overview.hitRatePercent ?? 0;
+    const ringDeg = Math.round((hitPct / 100) * 360);
+
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-xl font-bold text-white tracking-tight">Hiệu suất AI</h1>
-                    <p className="text-xs text-gray-500 font-mono mt-1">Metrics kỹ thuật và theo dõi lỗi</p>
+                    <p className="text-xs text-gray-500 font-mono mt-1">Metrics kỹ thuật, semantic cache & theo dõi lỗi</p>
                 </div>
-                <button onClick={fetchData}
-                    className="text-[10px] text-gray-400 hover:text-white font-mono uppercase tracking-widest px-3 py-1.5 border border-gray-800 rounded transition-colors">
+                <button
+                    onClick={fetchData}
+                    className="text-[10px] text-gray-400 hover:text-white font-mono uppercase tracking-widest px-3 py-1.5 border border-gray-800 rounded transition-colors"
+                >
                     Làm mới
                 </button>
             </div>
 
-            {/* Performance Overview */}
+            {/* ─── Performance Overview ─────────────────────────────────────────── */}
             {perf && (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -108,7 +166,183 @@ export default function AdminAIPage() {
                 </>
             )}
 
-            {/* Errors */}
+            {/* ─── Semantic Cache Analytics ─────────────────────────────────────── */}
+            {cache && (
+                <div className="space-y-4">
+                    {/* Section heading */}
+                    <div className="flex items-center gap-3">
+                        <div className="h-px flex-1 bg-gray-800/60" />
+                        <span className="text-[10px] text-emerald-500 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Semantic Cache
+                        </span>
+                        <div className="h-px flex-1 bg-gray-800/60" />
+                    </div>
+
+                    {/* Overview row */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        {/* Donut / hit-rate visual */}
+                        <div className="bg-[#0a0a0a] border border-emerald-900/30 rounded-xl p-6 flex flex-col items-center justify-center gap-3">
+                            {/* CSS conic-gradient donut */}
+                            <div
+                                className="w-24 h-24 rounded-full flex items-center justify-center"
+                                style={{
+                                    background: `conic-gradient(#10b981 0deg ${ringDeg}deg, #1f2937 ${ringDeg}deg 360deg)`,
+                                }}
+                            >
+                                <div className="w-16 h-16 rounded-full bg-[#0a0a0a] flex items-center justify-center">
+                                    <span className="text-sm font-bold text-emerald-400">{hitPct.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Cache Hit Rate</p>
+                                <div className="flex items-center justify-center gap-4 mt-2">
+                                    <div className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                                        <span className="text-[10px] text-gray-400 font-mono">Hit {cache.overview.cacheHits.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-gray-700 inline-block" />
+                                        <span className="text-[10px] text-gray-400 font-mono">Miss {cache.overview.cacheMisses.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* KPIs */}
+                        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <MetricCard
+                                label="Tổng queries"
+                                value={cache.overview.totalQueries.toLocaleString()}
+                            />
+                            <MetricCard
+                                label="Cache Hits"
+                                value={cache.overview.cacheHits.toLocaleString()}
+                                accent="text-emerald-400"
+                            />
+                            <MetricCard
+                                label="Cache Misses"
+                                value={cache.overview.cacheMisses.toLocaleString()}
+                                accent="text-gray-400"
+                            />
+                            <MetricCard
+                                label="TB Time Saved"
+                                value={`${(cache.overview.avgTimeSavedMs / 1000).toFixed(1)}s`}
+                                accent="text-emerald-400"
+                                sub="mỗi cache hit"
+                            />
+                            <MetricCard
+                                label="Tổng Time Saved"
+                                value={`${(cache.overview.totalTimeSavedMs / 1000 / 60).toFixed(1)} phút`}
+                                accent="text-emerald-300"
+                                sub={`${(cache.overview.totalTimeSavedMs / 1000).toFixed(0)}s tổng cộng`}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Response Time Comparison */}
+                    {cache.responseTimeComparison && (
+                        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-xl p-5 space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono">
+                                    So sánh Response Time
+                                </h3>
+                                <div className="flex items-center gap-3 text-[10px] font-mono">
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                                        <span className="text-emerald-400">Cached</span>
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
+                                        <span className="text-orange-400">Non-cached</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <ResponseTimeBar
+                                    label="AVG"
+                                    cachedMs={cache.responseTimeComparison.cached.avg}
+                                    nonCachedMs={cache.responseTimeComparison.nonCached.avg}
+                                />
+                                <ResponseTimeBar
+                                    label="P50"
+                                    cachedMs={cache.responseTimeComparison.cached.p50}
+                                    nonCachedMs={cache.responseTimeComparison.nonCached.p50}
+                                />
+                                <ResponseTimeBar
+                                    label="P95"
+                                    cachedMs={cache.responseTimeComparison.cached.p95}
+                                    nonCachedMs={cache.responseTimeComparison.nonCached.p95}
+                                />
+                            </div>
+                            {/* Raw numbers */}
+                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-800/40">
+                                <div className="space-y-1 text-[10px] font-mono">
+                                    <p className="text-emerald-500 uppercase tracking-widest">Cached</p>
+                                    <p className="text-gray-400">AVG: <span className="text-emerald-400">{cache.responseTimeComparison.cached.avg}ms</span></p>
+                                    <p className="text-gray-400">P50: <span className="text-emerald-400">{cache.responseTimeComparison.cached.p50}ms</span></p>
+                                    <p className="text-gray-400">P95: <span className="text-emerald-400">{cache.responseTimeComparison.cached.p95}ms</span></p>
+                                </div>
+                                <div className="space-y-1 text-[10px] font-mono">
+                                    <p className="text-orange-500 uppercase tracking-widest">Non-cached</p>
+                                    <p className="text-gray-400">AVG: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.avg}ms</span></p>
+                                    <p className="text-gray-400">P50: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.p50}ms</span></p>
+                                    <p className="text-gray-400">P95: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.p95}ms</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Time Series Table */}
+                    {cache.timeSeries && cache.timeSeries.length > 0 && (
+                        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-xl overflow-hidden">
+                            <div className="px-5 py-4 border-b border-gray-800/60">
+                                <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono">Cache Hit Rate theo ngày</h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-xs">
+                                    <thead>
+                                        <tr className="border-b border-gray-800/60">
+                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Ngày</th>
+                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Hits</th>
+                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Misses</th>
+                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Hit Rate</th>
+                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Visual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {cache.timeSeries.map((row) => {
+                                            const pct = Math.round(row.hitRate * 100);
+                                            const color =
+                                                pct >= 40 ? "bg-emerald-500" : pct >= 20 ? "bg-yellow-500" : "bg-red-500";
+                                            return (
+                                                <tr key={row.date} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
+                                                    <td className="px-4 py-2.5 text-gray-300 font-mono">{row.date}</td>
+                                                    <td className="px-4 py-2.5 text-emerald-400 font-mono">{row.hits}</td>
+                                                    <td className="px-4 py-2.5 text-gray-500 font-mono">{row.misses}</td>
+                                                    <td className="px-4 py-2.5 font-mono font-bold text-emerald-400">{pct}%</td>
+                                                    <td className="px-4 py-2.5 w-32">
+                                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full ${color} rounded-full transition-all duration-500`}
+                                                                style={{ width: `${pct}%` }}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ─── Errors ───────────────────────────────────────────────────────── */}
             {errors && (
                 <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-lg overflow-hidden">
                     <div className="px-5 py-4 border-b border-gray-800/60 flex items-center justify-between">
@@ -119,7 +353,7 @@ export default function AdminAIPage() {
                             Lỗi AI ({errors.total})
                         </h3>
                         {errors.errorsByType && (
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                                 {errors.errorsByType.map((e) => (
                                     <span key={e.type} className="text-[9px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">
                                         {e.type}: {e.count}
@@ -140,14 +374,20 @@ export default function AdminAIPage() {
                             </thead>
                             <tbody>
                                 {errors.data.length === 0 ? (
-                                    <tr><td colSpan={4} className="px-4 py-6 text-center text-gray-600 font-mono">Không có lỗi 🎉</td></tr>
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-6 text-center text-gray-600 font-mono">
+                                            Không có lỗi 🎉
+                                        </td>
+                                    </tr>
                                 ) : (
                                     errors.data.map((e, i) => (
                                         <tr key={`${e.messageId}-${i}`} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
                                             <td className="px-4 py-2 text-red-400 font-mono">{e.errorType}</td>
                                             <td className="px-4 py-2 text-gray-400 truncate max-w-[200px]">{e.errorMessage}</td>
                                             <td className="px-4 py-2 text-gray-300 truncate max-w-[200px]">{e.question}</td>
-                                            <td className="px-4 py-2 text-gray-500 font-mono text-[10px]">{new Date(e.timestamp).toLocaleString("vi-VN")}</td>
+                                            <td className="px-4 py-2 text-gray-500 font-mono text-[10px]">
+                                                {new Date(e.timestamp).toLocaleString("vi-VN")}
+                                            </td>
                                         </tr>
                                     ))
                                 )}

@@ -34,6 +34,7 @@ interface Message {
     content: string;           // nội dung chính (answer)
     thinking?: string;         // nội dung thinking (ẩn/hiện)
     steps?: MessageStep[];     // các bước đang xử lý
+    processes?: string[];      // lịch sử các thông báo process
     currentProcess?: string;   // nội dung quá trình LLM đang xử lý (type: process)
     sources?: Source[];
     streaming?: boolean;       // đang stream
@@ -42,6 +43,14 @@ interface Message {
 
 // ─── Regex to detect law references like [Điều 23, Khoản 1, ...] ─────────────
 const LAW_REF_REGEX = /\[([^\]]*?Điều[^\]]*?)\]/g;
+
+/** Format backend RRF score (0.010 - 0.050) into a recognizable percentage 50% - 99% */
+function formatRRFScore(score: number): number {
+    if (score >= 0.05) return 99;
+    if (score <= 0.01) return 50;
+    const percent = 50 + ((score - 0.01) / 0.04) * 49;
+    return Math.round(percent);
+}
 
 /**
  * Render text nodes with law references as clickable buttons.
@@ -218,6 +227,39 @@ function ThinkingBlock({
     );
 }
 
+/** Hiển thị chữ process mượt mà qua mảng để không bị mất text nào khi SSE bắn quá nhanh */
+function AnimatedProcessText({ texts }: { texts: string[] }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        // Reset index nếu mảng bị clear (như lúc regenerate)
+        if (texts.length === 0 && currentIndex !== 0) {
+            setCurrentIndex(0);
+        }
+    }, [texts.length, currentIndex]);
+
+    useEffect(() => {
+        let isCurrent = true;
+        const autoAdvance = async () => {
+            if (texts && currentIndex < texts.length - 1) {
+                // Đợi 1000ms rồi hiển thị process tiếp theo
+                await new Promise(r => setTimeout(r, 800));
+                if (isCurrent) {
+                    setCurrentIndex(c => c + 1);
+                }
+            }
+        };
+        autoAdvance();
+        return () => { isCurrent = false; };
+    }, [currentIndex, texts.length]);
+
+    if (!texts || texts.length === 0) return null;
+    
+    // Đảm bảo index hợp lệ
+    const validIndex = Math.min(currentIndex, texts.length - 1);
+    return <>{texts[validIndex]}</>;
+}
+
 /** Bubble tin nhắn AI */
 function AiMessage({
     msg,
@@ -295,7 +337,9 @@ function AiMessage({
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:0ms]" />
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:150ms]" />
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:300ms]" />
-                                <span className="text-[11px] text-gray-500 font-mono flex-1">{msg.currentProcess}</span>
+                                <span className="text-[11px] text-gray-500 font-mono flex-1">
+                                    <AnimatedProcessText texts={msg.processes || []} />
+                                </span>
                             </div>
                         )}
                     </div>
@@ -307,8 +351,10 @@ function AiMessage({
                             <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:150ms]" />
                             <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:300ms]" />
                         </div>
-                        {msg.currentProcess && (
-                            <span className="text-[11px] text-gray-500 font-mono">{msg.currentProcess}</span>
+                        {msg.processes && msg.processes.length > 0 && (
+                            <span className="text-[11px] text-gray-500 font-mono">
+                                <AnimatedProcessText texts={msg.processes} />
+                            </span>
                         )}
                     </div>
                 ) : null}
@@ -341,7 +387,7 @@ function AiMessage({
                                                 {src.id}
                                                 {src.score != null && (
                                                     <span className="ml-1 text-brand/60">
-                                                        {(src.score * 100).toFixed(0)}%
+                                                        {formatRRFScore(src.score)}%
                                                     </span>
                                                 )}
                                             </button>
@@ -588,6 +634,7 @@ function ChatPageInner() {
             role: "assistant",
             content: "",
             steps: [],
+            processes: [],
             thinking: "",
             streaming: true,
         };
@@ -624,9 +671,11 @@ function ChatPageInner() {
                             }));
                             break;
                         case "process":
+                            const pText = (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý...";
                             updateLastMessage((msg) => ({
                                 ...msg,
-                                currentProcess: (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý..."
+                                processes: [...(msg.processes || []), pText],
+                                currentProcess: pText
                             }));
                             break;
                         case "info":
@@ -704,6 +753,7 @@ function ChatPageInner() {
                 content: "",
                 thinking: "",
                 steps: [],
+                processes: [],
                 sources: undefined,
                 streaming: true,
                 error: undefined,
@@ -732,7 +782,9 @@ function ChatPageInner() {
                             msg.currentProcess = undefined;
                             break;
                         case "process":
-                            msg.currentProcess = (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý...";
+                            const pTextRegen = (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý...";
+                            msg.processes = [...(msg.processes || []), pTextRegen];
+                            msg.currentProcess = pTextRegen;
                             break;
                         case "message_id":
                             msg.id = (chunk as any).messageId || msg.id;

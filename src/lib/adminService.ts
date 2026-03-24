@@ -105,6 +105,23 @@ export interface AIErrorsResponse {
     errorsByType: { type: string; count: number }[];
 }
 
+// AI Cache
+export interface AICacheResponse {
+    overview: {
+        totalQueries: number;
+        cacheHits: number;
+        cacheMisses: number;
+        hitRatePercent: number;
+        avgTimeSavedMs: number;
+        totalTimeSavedMs: number;
+    };
+    responseTimeComparison: {
+        cached: { avg: number; p50: number; p95: number };
+        nonCached: { avg: number; p50: number; p95: number };
+    };
+    timeSeries: { date: string; hits: number; misses: number; hitRate: number }[];
+}
+
 // Users
 export interface AdminUser {
     id: string;
@@ -182,7 +199,7 @@ export interface ConversationDetailResponse {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function toQueryString(params: Record<string, unknown>): string {
+function toQueryString(params: Record<string, any>): string {
     const qs = Object.entries(params)
         .filter(([, v]) => v !== undefined && v !== null && v !== "")
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
@@ -218,6 +235,10 @@ export const adminService = {
 
     async getAIQuality(params: StatsQuery = {}): Promise<unknown> {
         return apiClient.get(`/admin/ai/quality${toQueryString(params)}`, true);
+    },
+
+    async getAICache(params: Pick<StatsQuery, 'dateFrom' | 'dateTo'> = {}): Promise<AICacheResponse> {
+        return apiClient.get<AICacheResponse>(`/admin/ai/cache${toQueryString(params)}`, true);
     },
 
     async getAIErrors(params: PaginationQuery & { errorCode?: string; dateFrom?: string; dateTo?: string } = {}): Promise<AIErrorsResponse> {
