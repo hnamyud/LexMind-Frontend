@@ -5,8 +5,10 @@ import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NeuralMeshBackground from "@/components/home/NeuralMeshBackground";
+import KnowledgeGraphSection from "@/components/home/KnowledgeGraphSection";
 import { authService } from "@/lib/authService";
 import { setAccessToken } from "@/lib/apiClient";
+import ReactMarkdown from "react-markdown";
 
 function HomePageInner() {
   const { fetchProfile } = useAuthStore();
@@ -38,151 +40,146 @@ function HomePageInner() {
     setMounted(true);
   }, []);
 
-// ─── ChatBubble Demo Component ───────────────────────────────────────────────
-const USER_Q = "Tôi 17 tuổi lái xe máy 110cc thì có vi phạm luật giao thông không?";
-const BOT_A_PARTS = {
-  intro: "Hành vi vi phạm:",
-  detail: "Người từ đủ 16 tuổi đến dưới 18 tuổi điều khiển xe mô tô có dung tích xi-lanh từ 50 cm³ trở lên.",
-  lawRefs: [
-    "Điều 18, Khoản 4, Điểm a, NĐ 168/2024"
-  ],
-  analysis: "Bạn 17 tuổi — thuộc nhóm \"người từ đủ 16 tuổi đến dưới 18 tuổi\". Xe máy 110cc là xe mô tô có dung tích xi-lanh từ 50 cm³ trở lên — đây là vi phạm về điều kiện người điều khiển phương tiện.",
-  penalty: "Phạt tiền từ 400.000đ đến 600.000đ"
-};
+  // ─── ChatBubble Demo Component ───────────────────────────────────────────────
+  const USER_Q = "Mức phạt đối với hành vi điều khiển xe máy đi vào đường cao tốc là gì?";
+  const BOT_TEXT = `**Hành vi vi phạm:** Người điều khiển xe máy (xe mô tô, xe gắn máy) đi vào đường cao tốc.
 
-function useTypewriter(text: string, speed = 18, startDelay = 0, active = false) {
-  const [displayed, setDisplayed] = useState("");
-  const [done, setDone] = useState(false);
-  useEffect(() => {
-    if (!active) { setDisplayed(""); setDone(false); return; }
-    let i = 0;
-    setDisplayed("");
-    setDone(false);
-    const t = setTimeout(() => {
-      const iv = setInterval(() => {
-        i++;
-        setDisplayed(text.slice(0, i));
-        if (i >= text.length) { clearInterval(iv); setDone(true); }
-      }, speed);
-      return () => clearInterval(iv);
-    }, startDelay);
-    return () => clearTimeout(t);
-  }, [active, text, speed, startDelay]);
-  return { displayed, done };
-}
+**Hình phạt:**
+- Phạt tiền từ **4.000.000 đồng đến 6.000.000 đồng**.
+- [Điều 7, Khoản 7, Điểm b, Nghị định 168/2024/NĐ-CP]
 
-function ChatBubbleDemo() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [phase, setPhase] = useState<"idle"|"user"|"thinking"|"bot">("idle");
+**Hình phạt bổ sung:**
+- Bị trừ **06 điểm** trên Giấy phép lái xe.
+- [Điều 7, Khoản 13, Điểm c, Nghị định 168/2024/NĐ-CP]
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
-    }, { threshold: 0.35 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+**Lưu ý:** 
+- Quy định này không áp dụng đối với xe phục vụ việc quản lý, bảo trì đường cao tốc.
+- Hành vi này được phân biệt với lỗi "đi vào khu vực cấm, đường có biển báo hiệu có nội dung cấm" thông thường.
 
-  useEffect(() => {
-    if (!visible) return;
-    setPhase("user");
-  }, [visible]);
+---
 
-  const fullBotText = `${BOT_A_PARTS.intro} ${BOT_A_PARTS.detail}\n\n${BOT_A_PARTS.analysis}\n\n${BOT_A_PARTS.penalty}`;
-  const qTyper = useTypewriter(USER_Q, 22, 200, phase === "user" || phase === "thinking" || phase === "bot");
-  const aTyper = useTypewriter(fullBotText, 12, 0, phase === "bot");
+*Dữ liệu tra cứu được trích xuất từ các nguồn luật hiện có trong hệ thống. Tuy nhiên, bot có thể gặp sai sót trong việc tổng hợp các tình tiết phức tạp. Chúng tôi khuyến cáo người dùng sử dụng thông tin này như một nguồn tham khảo bổ trợ và luôn tuân thủ các hướng dẫn trực tiếp từ cơ quan chức năng.*`;
 
-  useEffect(() => {
-    if (qTyper.done && phase === "user") {
-      const t = setTimeout(() => setPhase("thinking"), 400);
+  function useTypewriter(text: string, speed = 18, startDelay = 0, active = false) {
+    const [displayed, setDisplayed] = useState("");
+    const [done, setDone] = useState(false);
+    useEffect(() => {
+      if (!active) { setDisplayed(""); setDone(false); return; }
+      let i = 0;
+      setDisplayed("");
+      setDone(false);
+      const t = setTimeout(() => {
+        const iv = setInterval(() => {
+          i++;
+          setDisplayed(text.slice(0, i));
+          if (i >= text.length) { clearInterval(iv); setDone(true); }
+        }, speed);
+        return () => clearInterval(iv);
+      }, startDelay);
       return () => clearTimeout(t);
-    }
-  }, [qTyper.done, phase]);
-  useEffect(() => {
-    if (phase === "thinking") {
-      const t = setTimeout(() => setPhase("bot"), 1800);
-      return () => clearTimeout(t);
-    }
-  }, [phase]);
+    }, [active, text, speed, startDelay]);
+    return { displayed, done };
+  }
 
-  const bodyRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [qTyper.displayed, aTyper.displayed]);
+  function ChatBubbleDemo() {
+    const ref = useRef<HTMLDivElement>(null);
+    const [visible, setVisible] = useState(false);
+    const [phase, setPhase] = useState<"idle" | "user" | "thinking" | "bot">("idle");
 
-  return (
-    <div ref={ref} className="relative rounded-2xl overflow-hidden shadow-2xl text-left" style={{ border: "1px solid rgba(0,210,235,0.15)", backgroundColor: "rgba(12,12,18,0.7)", backdropFilter: "blur(20px)" }}>
-      {/* Window bar */}
-      <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
-        <div className="flex gap-1.5">
-          {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} className="size-2.5 rounded-full" style={{ backgroundColor: c, opacity: 0.8 }} />)}
+    useEffect(() => {
+      const el = ref.current;
+      if (!el) return;
+      const obs = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
+      }, { threshold: 0.35 });
+      obs.observe(el);
+      return () => obs.disconnect();
+    }, []);
+
+    useEffect(() => {
+      if (!visible) return;
+      setPhase("user");
+    }, [visible]);
+
+    const qTyper = useTypewriter(USER_Q, 22, 200, phase === "user" || phase === "thinking" || phase === "bot");
+    const aTyper = useTypewriter(BOT_TEXT, 6, 0, phase === "bot");
+
+    useEffect(() => {
+      if (qTyper.done && phase === "user") {
+        const t = setTimeout(() => setPhase("thinking"), 400);
+        return () => clearTimeout(t);
+      }
+    }, [qTyper.done, phase]);
+    useEffect(() => {
+      if (phase === "thinking") {
+        const t = setTimeout(() => setPhase("bot"), 1800);
+        return () => clearTimeout(t);
+      }
+    }, [phase]);
+
+    const bodyRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+      if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+    }, [qTyper.displayed, aTyper.displayed]);
+
+    return (
+      <div ref={ref} className="relative rounded-2xl overflow-hidden shadow-2xl text-left" style={{ border: "1px solid rgba(0,210,235,0.15)", backgroundColor: "rgba(12,12,18,0.7)", backdropFilter: "blur(20px)" }}>
+        {/* Window bar */}
+        <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+          <div className="flex gap-1.5">
+            {["#ff5f57", "#febc2e", "#28c840"].map(c => <div key={c} className="size-2.5 rounded-full" style={{ backgroundColor: c, opacity: 0.8 }} />)}
+          </div>
+          <div className="flex-1 text-center text-[11px] font-semibold tracking-wide" style={{ color: "#64748b" }}>LexMind Chat</div>
         </div>
-        <div className="flex-1 text-center text-[11px] font-semibold tracking-wide" style={{ color: "#64748b" }}>LexMind Chat</div>
-      </div>
 
-      {/* Chat body */}
-      <div ref={bodyRef} className="flex flex-col gap-4 p-5 md:p-6 overflow-y-auto" style={{ minHeight: "340px", maxHeight: "440px" }}>
-        {/* User bubble */}
-        {phase !== "idle" && (
-          <div className="flex justify-end">
-            <div className="max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed" style={{ backgroundColor: "rgba(0,210,235,0.12)", border: "1px solid rgba(0,210,235,0.2)", color: "#e2e8f0" }}>
-              {qTyper.displayed}
-              {!qTyper.done && <span className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse rounded-sm" style={{ backgroundColor: "#00f2ff" }} />}
-            </div>
-          </div>
-        )}
-
-        {/* Thinking indicator */}
-        {phase === "thinking" && (
-          <div className="flex gap-3 items-start">
-            <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
-              <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
-            </div>
-            <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-[12px] flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.04)", color: "rgba(0,210,235,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "#00d2eb" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "#00d2eb" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "#00d2eb" }} />
-              <span className="ml-1 text-[11px]">Đang phân tích Nghị định 168/2024...</span>
-            </div>
-          </div>
-        )}
-
-        {/* Bot answer */}
-        {phase === "bot" && (
-          <div className="flex gap-3 items-start">
-            <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
-              <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
-            </div>
-            <div className="max-w-[85%] flex flex-col gap-3">
-              {/* Main content bubble */}
-              <div className="rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm leading-relaxed" style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#cbd5e1" }}>
-                <p className="whitespace-pre-wrap">{aTyper.displayed}</p>
-                {!aTyper.done && <span className="inline-block w-1.5 h-3.5 ml-0.5 align-middle animate-pulse rounded-sm" style={{ backgroundColor: "#00f2ff" }} />}
+        {/* Chat body */}
+        <div ref={bodyRef} className="flex flex-col gap-4 p-5 md:p-6 overflow-y-auto" style={{ minHeight: "340px", maxHeight: "440px" }}>
+          {/* User bubble */}
+          {phase !== "idle" && (
+            <div className="flex justify-end">
+              <div className="max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed" style={{ backgroundColor: "rgba(0,210,235,0.12)", border: "1px solid rgba(0,210,235,0.2)", color: "#e2e8f0" }}>
+                {qTyper.displayed}
+                {!qTyper.done && <span className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse rounded-sm" style={{ backgroundColor: "#00f2ff" }} />}
               </div>
-
-              {/* Law reference chips - show after typing done */}
-              {aTyper.done && (
-                <div className="flex flex-wrap gap-1.5 pl-1 animate-[fadeIn_0.4s_ease-out]">
-                  {BOT_A_PARTS.lawRefs.map((ref) => (
-                    <span key={ref} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium" style={{ backgroundColor: "rgba(0,210,235,0.1)", border: "1px solid rgba(0,210,235,0.2)", color: "#00d2eb" }}>
-                      <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      {ref}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Thinking indicator */}
+          {phase === "thinking" && (
+            <div className="flex gap-3 items-start">
+              <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
+                <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
+              </div>
+              <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-[12px] flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.04)", color: "rgba(0,210,235,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "#00d2eb" }} />
+                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "#00d2eb" }} />
+                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "#00d2eb" }} />
+                <span className="ml-1 text-[11px]">Đang phân tích Nghị định 168/2024...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Bot answer */}
+          {phase === "bot" && (
+            <div className="flex gap-3 items-start">
+              <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
+                <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
+              </div>
+              <div className="max-w-[85%] flex flex-col gap-3">
+                {/* Main content bubble */}
+                <div className="rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm leading-relaxed flex flex-col gap-1" style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#cbd5e1" }}>
+                  <div className="prose prose-sm max-w-none prose-invert" style={{ '--tw-prose-body': '#cbd5e1', '--tw-prose-bold': '#ffffff', '--tw-prose-hr': 'rgba(255,255,255,0.1)' } as React.CSSProperties}>
+                    <ReactMarkdown>{aTyper.displayed}</ReactMarkdown>
+                  </div>
+                  {!aTyper.done && <span className="inline-block w-1.5 h-3.5 align-middle animate-pulse rounded-sm mt-1" style={{ backgroundColor: "#00f2ff" }} />}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div
@@ -192,7 +189,7 @@ function ChatBubbleDemo() {
       <div className="relative min-h-screen overflow-hidden">
         {/* Background: Neural Network Mesh (Vanta NET) */}
         <div className="absolute top-0 left-0 w-full h-[70vh] sm:h-[800px] z-0"
-             style={{ maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)" }}>
+          style={{ maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)" }}>
           <NeuralMeshBackground />
         </div>
 
@@ -227,16 +224,23 @@ function ChatBubbleDemo() {
             <a
               className="text-sm font-medium tracking-widest uppercase transition-colors hover:text-[#00f2ff]"
               style={{ color: "#94a3b8" }}
-              href="#features"
+              href="#neural-map"
             >
-              About
+              Neural Map
+            </a>
+            <a
+              className="text-sm font-medium tracking-widest uppercase transition-colors hover:text-[#00f2ff]"
+              style={{ color: "#94a3b8" }}
+              href="#console"
+            >
+              Ask AI
             </a>
             <a
               className="text-sm font-medium tracking-widest uppercase transition-colors hover:text-[#00f2ff]"
               style={{ color: "#94a3b8" }}
               href="#features"
             >
-              Features
+              Concept
             </a>
             {mounted && !!accessToken ? (
               <button
@@ -345,7 +349,8 @@ function ChatBubbleDemo() {
                 arrow_forward
               </span>
             </Link>
-            <button
+            <Link
+              href="/presentation"
               className="flex items-center justify-center h-14 px-10 font-bold uppercase tracking-widest rounded transition-all"
               style={{
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -353,75 +358,94 @@ function ChatBubbleDemo() {
               }}
             >
               View Demo
-            </button>
-          </div>
-
-          {/* Chat Bubble Demo */}
-          <div className="mt-10 md:mt-12 w-full max-w-5xl mx-auto px-4">
-            <ChatBubbleDemo />
+            </Link>
           </div>
         </main>
 
-        {/* Features Grid */}
+        {/* Knowledge Graph Rendering */}
+        <div id="neural-map">
+          <KnowledgeGraphSection />
+        </div>
+
+        {/* Chat Bubble Demo */}
+        <section id="console" className="relative z-10 w-full max-w-5xl mx-auto px-4 py-10 md:pb-24">
+          <ChatBubbleDemo />
+        </section>
+
+        {/* Concept Section (Bento Grid) */}
         <section
           id="features"
-          className="relative z-10 px-4 py-16 md:px-12 lg:px-24 md:py-24"
+          className="relative z-10 px-4 py-16 md:px-12 lg:px-24 md:py-32 flex flex-col items-center"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-3">
-            <div
-              className="p-8 md:p-12 space-y-4 md:space-y-6 transition-colors cursor-default border-b border-white/5 md:border-b-0"
-              style={{ backgroundColor: "rgba(255,255,255,0.01)" }}
-            >
-              <span
-                className="material-symbols-outlined text-4xl"
-                style={{ color: "#00f2ff" }}
-              >
-                search_insights
-              </span>
-              <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Agentic Legal Graph
-              </h3>
-              <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Deep-dive into Decree 168/2024 through Neo4j Knowledge Graph with sub-second latency and semantic accuracy.
+          {/* Headline & Intro (Full width) */}
+          <div className="w-full max-w-4xl text-center mb-16 px-4">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-6 text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to bottom right, #ffffff, #94a3b8)" }}>
+              Bridging the Gap Between Code and Counsel.
+            </h2>
+            <p className="text-base md:text-xl font-light leading-relaxed text-[#cbd5e1] max-w-3xl mx-auto">
+              &quot;LexMind is a research-driven project dedicated to democratizing legal intelligence through the power of Graph Data and Agentic RAG.&quot;
+            </p>
+          </div>
+
+          {/* Bento Grid layout */}
+          <div className="w-full max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Pillar 1: Data Integrity (1/2 width) */}
+            <div className="group relative overflow-hidden p-8 md:p-10 rounded-3xl flex flex-col justify-end min-h-[320px] transition-all hover:border-[#00f2ff]/30" style={{
+              backgroundColor: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+            }}>
+              {/* Glowing Ambient Top Right */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#00f2ff] opacity-5 rounded-full blur-3xl pointer-events-none transition-opacity group-hover:opacity-10" />
+              
+              <div className="absolute top-8 right-8 size-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: "rgba(0,242,255,0.1)", boxShadow: "0 0 30px rgba(0,242,255,0.3)" }}>
+                <span className="material-symbols-outlined text-[#00f2ff]">security</span>
+              </div>
+              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Zero-Hallucination Integrity</h3>
+              <p className="relative z-10 text-[#94a3b8] font-light leading-relaxed">
+                By grounding our AI in Neo4j Knowledge Graphs, we ensure every response is anchored in official data sovereignty.
               </p>
             </div>
-            <div
-              className="p-8 md:p-12 space-y-4 md:space-y-6 transition-colors cursor-default border-b border-white/5 md:border-b-0 md:border-l md:border-r border-white/5"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.01)",
-              }}
-            >
-              <span
-                className="material-symbols-outlined text-4xl"
-                style={{ color: "#00f2ff" }}
-              >
-                security
-              </span>
-              <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Official Data Sovereignty
-              </h3>
-              <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Real-time updates from the Ministry of Justice. Your queries are encrypted and never used to train public models.
+
+            {/* Pillar 2: Graph Logic (1/2 width) */}
+            <div className="group relative overflow-hidden p-8 md:p-10 rounded-3xl flex flex-col justify-end min-h-[320px] transition-all hover:border-[#00f2ff]/30" style={{
+              backgroundColor: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.08)"
+            }}>
+              {/* Fake Neural Mesh Pattern Background using existing Canvas inside this scoped div */}
+              <div className="absolute inset-0 opacity-[0.15] pointer-events-none scale-125 origin-center mix-blend-screen transition-opacity group-hover:opacity-[0.25]">
+                <NeuralMeshBackground />
+              </div>
+              
+              <div className="absolute top-8 right-8 size-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: "rgba(0,242,255,0.1)" }}>
+                <span className="material-symbols-outlined text-[#00f2ff]">account_tree</span>
+              </div>
+              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Logical Transparency</h3>
+              <p className="relative z-10 text-[#94a3b8] font-light leading-relaxed">
+                Unlike &quot;black box&quot; AI, our mission is to show the &quot;reasoning path&quot; behind every legal conclusion.
               </p>
             </div>
-            <div
-              className="p-12 space-y-6 transition-colors cursor-default"
-              style={{ backgroundColor: "rgba(255,255,255,0.01)" }}
-            >
-              <span
-                className="material-symbols-outlined text-4xl"
-                style={{ color: "#00f2ff" }}
-              >
-                auto_awesome
-              </span>
-              <h3 className="text-xl font-bold uppercase tracking-tight text-white">
-                Penalty &amp; Point Engine
-              </h3>
-              <p className="font-light leading-relaxed" style={{ color: "#94a3b8" }}>
-                Automatically simulate fine levels and GPLX point deductions with professional precision and intelligent logic control.
-              </p>
+
+            {/* Pillar 3: User Impact (Full width strip) */}
+            <div className="md:col-span-2 group relative overflow-hidden p-8 md:px-12 md:py-10 rounded-3xl flex flex-col md:flex-row items-start md:items-center gap-6" style={{
+              background: "linear-gradient(90deg, rgba(0,242,255,0.06) 0%, rgba(0,200,225,0.02) 100%)",
+              border: "1px solid rgba(0,242,255,0.15)",
+              boxShadow: "inset 0 0 40px rgba(0,242,255,0.02)"
+            }}>
+              <div className="shrink-0 size-16 rounded-full flex items-center justify-center transition-transform group-hover:-rotate-12" style={{ background: "rgba(0,242,255,0.15)", border: "1px solid rgba(0,242,255,0.3)" }}>
+                <span className="material-symbols-outlined text-[#00f2ff] text-2xl">public</span>
+              </div>
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-2">Democratic Accessibility</h3>
+                <p className="text-[#94a3b8] font-light leading-relaxed max-w-3xl">
+                  We believe legal clarity shouldn&apos;t be a luxury. LexMind simplifies complex statutes into intuitive insights for everyone.
+                </p>
+              </div>
             </div>
+
           </div>
         </section>
 
@@ -457,7 +481,7 @@ function ChatBubbleDemo() {
               className="text-[10px] font-bold uppercase tracking-widest"
               style={{ color: "#475569" }}
             >
-              © 2024 LEXI INTELLIGENCE SYSTEMS
+              © 2026 LEXMIND INTELLIGENCE SYSTEMS
             </p>
           </div>
         </footer>

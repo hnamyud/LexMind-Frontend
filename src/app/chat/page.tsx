@@ -165,7 +165,7 @@ function CopyButton({ text, className, label }: { text: string; className?: stri
             type="button"
         >
             {copied ? (
-                <svg className="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3" style={{ color: "var(--accent)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
             ) : (
@@ -254,7 +254,7 @@ function AnimatedProcessText({ texts }: { texts: string[] }) {
     }, [currentIndex, texts.length]);
 
     if (!texts || texts.length === 0) return null;
-    
+
     // Đảm bảo index hợp lệ
     const validIndex = Math.min(currentIndex, texts.length - 1);
     return <>{texts[validIndex]}</>;
@@ -263,12 +263,14 @@ function AnimatedProcessText({ texts }: { texts: string[] }) {
 /** Bubble tin nhắn AI */
 function AiMessage({
     msg,
+    isLatest,
     onRegenerate,
     onLawClick,
     onLike,
     onDislike,
 }: {
     msg: Message;
+    isLatest?: boolean;
     onRegenerate?: (id: string) => void;
     onLawClick?: (nodeId: string) => void;
     onLike?: (id: string) => void;
@@ -276,6 +278,19 @@ function AiMessage({
 }) {
     const lastStep = msg.steps?.[msg.steps.length - 1];
     const [localFeedback, setLocalFeedback] = useState<'like' | 'dislike' | null>(null);
+    const [canRegenerate, setCanRegenerate] = useState(true);
+
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        if (isLatest && !msg.streaming) {
+            timeoutId = setTimeout(() => {
+                setCanRegenerate(false);
+            }, 60000);
+        }
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [isLatest, msg.streaming]);
 
     return (
         <div className="flex flex-col items-start">
@@ -316,7 +331,7 @@ function AiMessage({
                 {/* Answer content */}
                 {msg.content ? (
                     <div>
-                        <div className="prose prose-sm max-w-none dark:prose-invert" style={{ '--tw-prose-body': 'var(--text-secondary)', '--tw-prose-headings': 'var(--accent)', '--tw-prose-bold': 'var(--text-primary)', '--tw-prose-code': 'var(--accent)', '--tw-prose-bullets': 'var(--text-muted)' } as React.CSSProperties}>
+                        <div className="prose prose-sm max-w-none dark:prose-invert" style={{ '--tw-prose-body': 'var(--text-primary)', '--tw-prose-headings': 'var(--accent)', '--tw-prose-bold': 'var(--text-primary)', '--tw-prose-code': 'var(--accent)', '--tw-prose-bullets': 'var(--text-muted)' } as React.CSSProperties}>
                             <ReactMarkdown
                                 components={{
                                     // Override text rendering inside <p>, <li>, <strong>, etc.
@@ -342,10 +357,10 @@ function AiMessage({
                         </div>
                         {msg.streaming && msg.currentProcess && (
                             <div className="flex items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:0ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:150ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:300ms]" />
-                                <span className="text-[11px] text-gray-500 font-mono flex-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:0ms]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:150ms]" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:300ms]" />
+                                <span className="text-[11px] text-brand/80 font-mono flex-1">
                                     <AnimatedProcessText texts={msg.processes || []} />
                                 </span>
                             </div>
@@ -355,12 +370,12 @@ function AiMessage({
                     // Placeholder khi chưa có answer
                     <div className="flex flex-col gap-2">
                         <div className="flex gap-1 items-center h-4">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:0ms]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:150ms]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:300ms]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:0ms]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:150ms]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:300ms]" />
                         </div>
                         {msg.processes && msg.processes.length > 0 && (
-                            <span className="text-[11px] text-gray-500 font-mono">
+                            <span className="text-[11px] text-brand/80 font-mono">
                                 <AnimatedProcessText texts={msg.processes} />
                             </span>
                         )}
@@ -473,12 +488,12 @@ function AiMessage({
                                 </svg>
                             </button>
                         )}
-                        <CopyButton 
-                            text={msg.content} 
-                            className="text-[11px] transition-colors flex items-center gap-1 ml-1 pl-2 border-l text-[var(--text-muted)] border-[var(--border-primary)]" 
-                            label="Sao chép" 
+                        <CopyButton
+                            text={msg.content}
+                            className="text-[11px] transition-colors flex items-center gap-1 ml-1 pl-2 border-l text-[var(--text-muted)] border-[var(--border-primary)]"
+                            label="Sao chép"
                         />
-                        {onRegenerate && (
+                        {isLatest && canRegenerate && onRegenerate && (
                             <button
                                 onClick={() => onRegenerate(msg.id)}
                                 className="text-[11px] transition-colors flex items-center gap-1 ml-1 pl-2 border-l text-[var(--text-muted)] border-[var(--border-primary)]"
@@ -562,12 +577,12 @@ function ChatPageInner() {
         const urlConvId = searchParams.get("conversationId") ?? undefined;
         // Bỏ qua nếu không có sự thực sự thay đổi
         if (urlConvId === conversationId) return;
-        
+
         setConversationId(urlConvId);
-        
+
         if (urlConvId) {
             setActiveId(urlConvId);
-            
+
             // Nếu ta đang stream (tức là mới văng từ màn hình New Chat sang URL này nhờ chunk 'info')
             // Thì KHÔNG fetch lại history khỏi DB, vì messages đang nằm trên RAM rồi.
             if (isStreamingRef.current) return;
@@ -588,7 +603,7 @@ function ChatPageInner() {
                 })
                 .catch(err => console.error("Failed to load generic messages", err))
                 .finally(() => setIsLoadingHistory(false));
-            
+
         } else {
             // New chat
             if (!isStreamingRef.current) {
@@ -711,15 +726,15 @@ function ChatPageInner() {
                             break;
                     }
                 }
-            , abort.signal);
+                , abort.signal);
         } catch (err) {
             if ((err as any)?.name === "AbortError" || abort.signal.aborted) {
                 // User chủ động hủy
                 updateLastMessage((msg) => ({
                     ...msg,
                     streaming: false,
-                    content: msg.content 
-                        ? `${msg.content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*` 
+                    content: msg.content
+                        ? `${msg.content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*`
                         : "> *Thao tác bị hủy bỏ bởi người dùng.*",
                     currentProcess: undefined
                 }));
@@ -734,7 +749,7 @@ function ChatPageInner() {
         } finally {
             setIsStreaming(false);
             abortRef.current = null;
-            
+
             if (isNewChat) {
                 // Refresh list chat sau khi trả lời xong câu đầu tiên để cập nhật AI generated title
                 setTimeout(() => {
@@ -818,8 +833,8 @@ function ChatPageInner() {
                     copy[idx] = {
                         ...copy[idx],
                         streaming: false,
-                        content: copy[idx].content 
-                            ? `${copy[idx].content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*` 
+                        content: copy[idx].content
+                            ? `${copy[idx].content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*`
                             : "> *Thao tác bị hủy bỏ bởi người dùng.*",
                         currentProcess: undefined
                     };
@@ -885,8 +900,8 @@ function ChatPageInner() {
                             // User bubble
                             <div key={msg.id} className="flex flex-col items-end group w-full">
                                 <div className="flex items-center justify-end gap-2 w-full">
-                                    <CopyButton 
-                                        text={msg.content} 
+                                    <CopyButton
+                                        text={msg.content}
                                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded shrink-0"
                                     />
                                     <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] text-sm leading-relaxed break-words whitespace-pre-wrap"
@@ -904,10 +919,11 @@ function ChatPageInner() {
                             </div>
                         ) : (
                             // AI bubble
-                            <AiMessage 
-                                key={msg.id} 
-                                msg={msg} 
-                                onRegenerate={handleRegenerate} 
+                            <AiMessage
+                                key={msg.id}
+                                msg={msg}
+                                isLatest={messages.length > 0 && messages[messages.length - 1].id === msg.id}
+                                onRegenerate={handleRegenerate}
                                 onLawClick={setLawPanelNodeId}
                                 onLike={handleLike}
                                 onDislike={handleDislike}
@@ -929,7 +945,7 @@ function ChatPageInner() {
                         onKeyDown={handleKeyDown}
                         rows={1}
                         disabled={isStreaming}
-                        className={`w-full text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:ring-0 rounded-xl transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
+                        className={`w-full text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:ring-0 rounded-xl transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll placeholder:text-[var(--text-secondary)] placeholder:opacity-100 focus:placeholder:opacity-60 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
                         placeholder="Hỏi LexMind..."
                         style={{
                             minHeight: 48, maxHeight: 240,
@@ -941,11 +957,10 @@ function ChatPageInner() {
                     <button
                         onClick={isStreaming ? handleCancel : () => handleSend(input)}
                         disabled={!isStreaming && !input.trim()}
-                        className={`absolute right-3 bottom-2.5 md:bottom-3 p-2 transition-all rounded ${
-                            isStreaming
+                        className={`absolute right-3 bottom-2.5 md:bottom-3 p-2 transition-all rounded ${isStreaming
                                 ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                 : "disabled:opacity-30 disabled:cursor-not-allowed"
-                        }`}
+                            }`}
                         style={{ color: isStreaming ? undefined : 'var(--text-muted)' }}
                         type="button"
                         title={isStreaming ? "Hủy đánh máy (Escape)" : "Gửi (Enter)"}
