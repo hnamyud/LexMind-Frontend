@@ -80,7 +80,7 @@ function LawRefText({ text, onLawClick }: { text: string; onLawClick?: (nodeId: 
                     key={`law-${match.index}`}
                     type="button"
                     onClick={(e) => { e.preventDefault(); onLawClick(nodeId); }}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded bg-brand/10 border border-brand/25 text-brand hover:bg-brand/20 hover:border-brand/40 transition-all cursor-pointer text-[13px] font-medium leading-snug align-baseline"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded bg-[var(--accent-soft)] border border-[var(--accent-border)] text-[var(--accent)] hover:bg-[var(--accent-border)] transition-all cursor-pointer text-[13px] font-medium leading-snug align-baseline text-left"
                     title={`Tra cứu: ${innerText}`}
                 >
                     <svg className="w-3 h-3 shrink-0 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +279,15 @@ function AiMessage({
 
     return (
         <div className="flex flex-col items-start">
-            <div className="ai-glow bg-ai-bubble text-gray-200 px-5 py-4 rounded max-w-[90%] text-sm leading-relaxed border border-gray-800 break-words">
+            <div className="px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] text-sm leading-relaxed break-words"
+                style={{
+                    backgroundColor: "var(--bg-bubble-ai)",
+                    border: "1px solid var(--border-primary)",
+                    color: "var(--text-secondary)",
+                    boxShadow: "var(--shadow-bubble)",
+                    borderLeft: "3px solid var(--accent)"
+                }}
+            >
                 {/* Steps đang xử lý */}
                 {msg.streaming && msg.steps && msg.steps.length > 0 && !msg.content && (
                     <div className="mb-2 space-y-1">
@@ -308,7 +316,7 @@ function AiMessage({
                 {/* Answer content */}
                 {msg.content ? (
                     <div>
-                        <div className="prose prose-invert prose-sm max-w-none prose-p:text-gray-200 prose-headings:text-brand prose-strong:text-gray-100 prose-code:text-brand prose-li:text-gray-300">
+                        <div className="prose prose-sm max-w-none dark:prose-invert" style={{ '--tw-prose-body': 'var(--text-secondary)', '--tw-prose-headings': 'var(--accent)', '--tw-prose-bold': 'var(--text-primary)', '--tw-prose-code': 'var(--accent)', '--tw-prose-bullets': 'var(--text-muted)' } as React.CSSProperties}>
                             <ReactMarkdown
                                 components={{
                                     // Override text rendering inside <p>, <li>, <strong>, etc.
@@ -333,7 +341,7 @@ function AiMessage({
                             )}
                         </div>
                         {msg.streaming && msg.currentProcess && (
-                            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-800/50">
+                            <div className="flex items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:0ms]" />
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:150ms]" />
                                 <span className="w-1.5 h-1.5 rounded-full bg-brand/60 animate-bounce [animation-delay:300ms]" />
@@ -370,23 +378,24 @@ function AiMessage({
                     const EXCLUDED_EXTS = /\.(pdf|docx?|xlsx?|pptx?|zip|rar)(\?.*)?$/i;
                     const webSources = msg.sources!.filter(s => s.type === 'web' && s.url && !EXCLUDED_EXTS.test(s.url));
                     return (
-                        <div className="mt-3 pt-3 border-t border-gray-800">
+                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                             {/* Knowledge graph sources */}
                             {kgSources.length > 0 && (
                                 <>
-                                    <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5">Nguồn tham chiếu</p>
+                                    <p className="text-[10px] uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-faint)' }}>Nguồn tham chiếu</p>
                                     <div className="flex flex-wrap gap-1.5">
                                         {kgSources.map((src, idx) => (
                                             <button
                                                 key={`src-${src.id}-${idx}`}
                                                 type="button"
                                                 onClick={() => onLawClick?.(src.id!)}
-                                                className="px-2 py-0.5 text-[10px] rounded border border-gray-700 text-gray-500 font-mono hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-all cursor-pointer"
+                                                className="px-2.5 py-1 text-[10px] rounded-full font-mono transition-all cursor-pointer"
+                                                style={{ border: '1px solid var(--accent-border)', color: 'var(--text-muted)', backgroundColor: 'var(--accent-soft)' }}
                                                 title={`Tra cứu: ${src.id}`}
                                             >
                                                 {src.id}
                                                 {src.score != null && (
-                                                    <span className="ml-1 text-brand/60">
+                                                    <span className="ml-1 text-[var(--accent)] opacity-70 font-bold">
                                                         {formatRRFScore(src.score)}%
                                                     </span>
                                                 )}
@@ -433,7 +442,7 @@ function AiMessage({
             </div>
 
             <div className="flex items-center gap-3 mt-1.5 ml-1">
-                <span className="text-xs text-brand uppercase tracking-widest font-bold">LexMind</span>
+                <span className="text-xs uppercase tracking-widest font-bold" style={{ color: 'var(--accent)' }}>LexMind</span>
                 {!msg.streaming && msg.content && (
                     <div className="flex items-center gap-2">
                         {onLike && (
@@ -466,13 +475,13 @@ function AiMessage({
                         )}
                         <CopyButton 
                             text={msg.content} 
-                            className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 ml-1 pl-2 border-l border-gray-800" 
+                            className="text-[11px] transition-colors flex items-center gap-1 ml-1 pl-2 border-l text-[var(--text-muted)] border-[var(--border-primary)]" 
                             label="Sao chép" 
                         />
                         {onRegenerate && (
                             <button
                                 onClick={() => onRegenerate(msg.id)}
-                                className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1 ml-1 pl-2 border-l border-gray-800"
+                                className="text-[11px] transition-colors flex items-center gap-1 ml-1 pl-2 border-l text-[var(--text-muted)] border-[var(--border-primary)]"
                                 title="Tạo lại câu trả lời"
                             >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -851,11 +860,11 @@ function ChatPageInner() {
             {showHero && (
                 <div className="flex flex-col items-center justify-center py-8 px-6 md:py-12 md:px-6">
                     <div className="w-full max-w-2xl text-center">
-                        <h1 className="typing-effect text-xl sm:text-2xl md:text-4xl font-bold text-white tracking-tight break-words">
+                        <h1 className="typing-effect text-xl sm:text-2xl md:text-4xl font-bold tracking-tight break-words" style={{ color: 'var(--text-primary)' }}>
                             LexMind: Advanced Legal Intelligence.
                         </h1>
                     </div>
-                    <p className="mt-4 text-gray-500 text-sm md:text-base font-medium text-center px-2">
+                    <p className="mt-4 text-sm md:text-base font-medium text-center px-2" style={{ color: 'var(--text-muted)' }}>
                         Sophisticated legal reasoning at your fingertips.
                     </p>
                 </div>
@@ -878,13 +887,20 @@ function ChatPageInner() {
                                 <div className="flex items-center justify-end gap-2 w-full">
                                     <CopyButton 
                                         text={msg.content} 
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-gray-500 hover:text-gray-300 rounded hover:bg-gray-800 shrink-0" 
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded shrink-0"
                                     />
-                                    <div className="bg-user-bubble text-gray-200 px-4 py-3 rounded max-w-[85%] text-sm leading-relaxed border border-gray-700 break-words whitespace-pre-wrap">
+                                    <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] text-sm leading-relaxed break-words whitespace-pre-wrap"
+                                        style={{
+                                            backgroundColor: 'var(--accent-soft)',
+                                            border: '1px solid var(--accent-border)',
+                                            color: 'var(--text-primary)',
+                                            boxShadow: 'var(--shadow-bubble)'
+                                        }}
+                                    >
                                         {msg.content}
                                     </div>
                                 </div>
-                                <span className="text-xs text-gray-500 mt-1 uppercase tracking-widest mr-1">Bạn</span>
+                                <span className="text-xs mt-1 uppercase tracking-widest mr-1" style={{ color: 'var(--text-muted)' }}>Bạn</span>
                             </div>
                         ) : (
                             // AI bubble
@@ -902,7 +918,9 @@ function ChatPageInner() {
             </section>
 
             {/* Input Area */}
-            <div className="p-4 md:p-6 bg-main shrink-0 w-full absolute bottom-0 left-0">
+            <div className="p-4 md:p-6 shrink-0 w-full absolute bottom-0 left-0 pb-2 md:pb-6"
+                style={{ backgroundColor: 'var(--bg-main)' }}
+            >
                 <div className="max-w-4xl mx-auto relative group">
                     <textarea
                         ref={inputRef}
@@ -911,9 +929,14 @@ function ChatPageInner() {
                         onKeyDown={handleKeyDown}
                         rows={1}
                         disabled={isStreaming}
-                        className={`w-full bg-[#161616] border border-gray-800 text-gray-200 text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:border-brand focus:ring-0 rounded transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
+                        className={`w-full text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:ring-0 rounded-xl transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
                         placeholder="Hỏi LexMind..."
-                        style={{ minHeight: 48, maxHeight: 240 }}
+                        style={{
+                            minHeight: 48, maxHeight: 240,
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-primary)',
+                            color: 'var(--text-primary)',
+                        }}
                     />
                     <button
                         onClick={isStreaming ? handleCancel : () => handleSend(input)}
@@ -921,13 +944,13 @@ function ChatPageInner() {
                         className={`absolute right-3 bottom-2.5 md:bottom-3 p-2 transition-all rounded ${
                             isStreaming
                                 ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                : "text-gray-500 hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
+                                : "disabled:opacity-30 disabled:cursor-not-allowed"
                         }`}
+                        style={{ color: isStreaming ? undefined : 'var(--text-muted)' }}
                         type="button"
                         title={isStreaming ? "Hủy đánh máy (Escape)" : "Gửi (Enter)"}
                     >
                         {isStreaming ? (
-                            // Stop icon
                             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                                 <rect x="5" y="5" width="14" height="14" rx="2" />
                             </svg>
@@ -939,7 +962,7 @@ function ChatPageInner() {
                     </button>
                 </div>
                 <div className="text-center mt-2 md:mt-3">
-                    <p className="text-[9px] md:text-[10px] text-gray-600 uppercase tracking-tighter">
+                    <p className="text-[9px] md:text-[10px] uppercase tracking-tighter" style={{ color: 'var(--text-faint)' }}>
                         LexMind có thể mắc sai sót
                     </p>
                 </div>

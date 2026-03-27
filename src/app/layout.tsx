@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Public_Sans, Inter, Roboto_Mono } from "next/font/google";
+import { Public_Sans, Inter, Roboto_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/providers/AuthProvider";
+import ThemeProvider from "@/providers/ThemeProvider";
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -19,6 +20,12 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  weight: ["700", "900"],
 });
 
 export const metadata: Metadata = {
@@ -41,9 +48,11 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${publicSans.variable} ${inter.variable} ${robotoMono.variable} antialiased`}
+        className={`${publicSans.variable} ${inter.variable} ${robotoMono.variable} ${playfair.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

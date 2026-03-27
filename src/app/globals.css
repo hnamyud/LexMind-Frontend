@@ -21,40 +21,79 @@
   --color-login-primary: #ec5b13;
 }
 
+/* ===== Theme System ===== */
+:root {
+  /* Light mode defaults */
+  --bg-primary: #f8f9fc;
+  --bg-secondary: #ffffff;
+  --bg-sidebar: #f1f3f8;
+  --bg-main: #f8f9fc;
+  --bg-bubble-user: #e0f4ff;
+  --bg-bubble-ai: #ffffff;
+  --bg-input: #ffffff;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --text-faint: #9ca3af;
+
+  --border-primary: #e5e7eb;
+  --border-subtle: #f3f4f6;
+
+  --accent: #0077a8;
+  --accent-soft: rgba(0, 100, 150, 0.08);
+  --accent-border: rgba(0, 100, 150, 0.25);
+
+  --shadow-bubble: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --scrollbar-color: rgba(0, 180, 210, 0.25);
+  --scrollbar-hover: rgba(0, 180, 210, 0.5);
+}
+
+.dark {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-sidebar: #121212;
+  --bg-main: #0a0a0a;
+  --bg-bubble-user: #1e1e1e;
+  --bg-bubble-ai: #131921;
+  --bg-input: #161616;
+  --bg-hover: rgba(255, 255, 255, 0.04);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+
+  --border-primary: #1e293b;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  --accent: #00f2ff;
+  --accent-soft: rgba(0, 242, 255, 0.08);
+  --accent-border: rgba(0, 242, 255, 0.2);
+
+  --shadow-bubble: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --scrollbar-color: rgba(0, 255, 255, 0.25);
+  --scrollbar-hover: rgba(0, 255, 255, 0.5);
+}
+
 /* ===== Global Base ===== */
 html {
-  background-color: #050505;
-  color: #f1f5f9;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ===== Star Field Background (home) ===== */
-.star-field {
-  background-image:
-    radial-gradient(1px 1px at 20px 30px, #fff, rgba(0, 0, 0, 0)),
-    radial-gradient(1px 1px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
-    radial-gradient(1.5px 1.5px at 50px 160px, #fff, rgba(0, 0, 0, 0)),
-    radial-gradient(1px 1px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
-    radial-gradient(1.5px 1.5px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
-    radial-gradient(1px 1px at 160px 120px, #fff, rgba(0, 0, 0, 0));
-  background-repeat: repeat;
-  background-size: 200px 200px;
-  opacity: 0.15;
+/* ===== Fade-in Animation ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-.comet-trail {
-  background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.1), transparent);
-  height: 1px;
-  width: 200px;
-  position: absolute;
-  transform: rotate(-15deg);
-}
-
-
 
 /* ===== Chat Scrollbar ===== */
 .chat-stream {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 255, 0.25) transparent;
+  scrollbar-color: var(--scrollbar-color) transparent;
   scroll-behavior: smooth;
 }
 
@@ -68,34 +107,22 @@ html {
 }
 
 .chat-stream::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 255, 255, 0.0) 0%,
-    rgba(0, 255, 255, 0.3) 30%,
-    rgba(0, 255, 255, 0.5) 60%,
-    rgba(0, 255, 255, 0.2) 100%
-  );
+  background: var(--scrollbar-color);
   border-radius: 100px;
   transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .chat-stream::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 255, 255, 0.2) 0%,
-    rgba(0, 255, 255, 0.6) 40%,
-    rgba(0, 255, 255, 0.8) 70%,
-    rgba(0, 255, 255, 0.3) 100%
-  );
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4), 0 0 2px rgba(0, 255, 255, 0.6);
+  background: var(--scrollbar-hover);
+  box-shadow: 0 0 8px rgba(0, 180, 210, 0.4);
 }
 
 .chat-stream::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 255, 255, 0.8);
-  box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+  background: rgba(0, 210, 235, 0.8);
+  box-shadow: 0 0 12px rgba(0, 210, 235, 0.6);
 }
 
-/* Mobile: hide scrollbar track, show only on interaction */
+/* Mobile: hide scrollbar track */
 @media (max-width: 768px) {
   .chat-stream {
     scrollbar-width: none;
@@ -108,7 +135,7 @@ html {
   }
 
   .chat-stream::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 255, 0.4);
+    background: var(--scrollbar-color);
     border-radius: 100px;
   }
 
@@ -121,7 +148,7 @@ html {
 /* ===== Sidebar Scrollbar ===== */
 .sidebar-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(0, 180, 210, 0.15) transparent;
   scroll-behavior: smooth;
 }
 
@@ -135,25 +162,25 @@ html {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.15);
+  background: rgba(0, 180, 210, 0.15);
   border-radius: 100px;
 }
 
 .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.35);
+  background: rgba(0, 180, 210, 0.35);
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 255, 0.6);
-  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4), 0 0 2px rgba(0, 255, 255, 0.5);
+  background: rgba(0, 180, 210, 0.6);
+  box-shadow: 0 0 6px rgba(0, 180, 210, 0.4), 0 0 2px rgba(0, 180, 210, 0.5);
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 255, 255, 0.8);
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+  background: rgba(0, 180, 210, 0.8);
+  box-shadow: 0 0 10px rgba(0, 180, 210, 0.6);
 }
 
-/* Mobile: sidebar scrollbar fully hidden (sidebar becomes overlay) */
+/* Mobile: sidebar scrollbar fully hidden */
 @media (max-width: 768px) {
   .sidebar-scroll {
     scrollbar-width: none;
@@ -164,11 +191,10 @@ html {
   }
 }
 
-
 /* ===== Law Panel Scrollbar ===== */
 .law-panel-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
+  scrollbar-color: rgba(0, 180, 210, 0.2) transparent;
   scroll-behavior: smooth;
 }
 
@@ -182,23 +208,23 @@ html {
 }
 
 .law-panel-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.2);
+  background: rgba(0, 180, 210, 0.2);
   border-radius: 100px;
 }
 
 .law-panel-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.4);
+  background: rgba(0, 180, 210, 0.4);
 }
 
 .law-panel-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 255, 0.6);
-  box-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+  background: rgba(0, 180, 210, 0.6);
+  box-shadow: 0 0 6px rgba(0, 180, 210, 0.4);
 }
 
 /* ===== Chat Input Scrollbar ===== */
 textarea.chat-input-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 255, 0.2) transparent;
+  scrollbar-color: var(--scrollbar-color) transparent;
 }
 
 textarea.chat-input-scroll::-webkit-scrollbar {
@@ -211,34 +237,28 @@ textarea.chat-input-scroll::-webkit-scrollbar-track {
 }
 
 textarea.chat-input-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.2);
+  background: var(--scrollbar-color);
   border-radius: 100px;
 }
 
 textarea.chat-input-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 255, 0.35);
+  background: rgba(0, 180, 210, 0.35);
 }
 
 textarea.chat-input-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 255, 0.5);
-  box-shadow: 0 0 6px rgba(0, 255, 255, 0.3), 0 0 2px rgba(0, 255, 255, 0.4);
+  background: var(--scrollbar-hover);
+  box-shadow: 0 0 6px rgba(0, 180, 210, 0.3), 0 0 2px rgba(0, 180, 210, 0.4);
 }
 
 textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
-  background: rgba(0, 255, 255, 0.7);
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
-}
-
-/* ===== AI Glow Bubble ===== */
-.ai-glow {
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.1), inset 0 0 1px rgba(0, 255, 255, 0.3);
-  border-left: 2px solid #00ffff;
+  background: rgba(0, 210, 235, 0.7);
+  box-shadow: 0 0 8px rgba(0, 210, 235, 0.5);
 }
 
 /* ===== Typing Animation ===== */
 .typing-effect {
   overflow: hidden;
-  border-right: 0.15em solid #00ffff;
+  border-right: 0.15em solid var(--accent);
   white-space: nowrap;
   margin: 0 auto;
   letter-spacing: -0.02em;
@@ -248,25 +268,13 @@ textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
 }
 
 @keyframes typing {
-  from {
-    width: 0;
-  }
-
-  to {
-    width: 100%;
-  }
+  from { width: 0; }
+  to { width: 100%; }
 }
 
 @keyframes blink-caret {
-
-  from,
-  to {
-    border-color: transparent;
-  }
-
-  50% {
-    border-color: #00ffff;
-  }
+  from, to { border-color: transparent; }
+  50% { border-color: var(--accent); }
 }
 
 /* ===== Login Glow ===== */
@@ -301,4 +309,3 @@ textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
   scrollbar-width: thin;
   scrollbar-color: rgba(236, 91, 19, 0.25) transparent;
 }
-

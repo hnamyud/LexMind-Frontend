@@ -19,7 +19,7 @@ function GoogleButton({ disabled }: { disabled?: boolean }) {
             type="button"
             disabled={disabled}
             onClick={() => authService.redirectToGoogle()}
-            className="w-full flex items-center justify-center gap-3 border border-gray-700 bg-transparent hover:bg-gray-800/50 text-gray-300 py-3 px-4 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded"
+            className="w-full flex items-center justify-center gap-3 border border-gray-700 bg-transparent hover:bg-gray-800/50 text-gray-300 py-3 px-4 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
         >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -110,7 +110,7 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
     };
     const stepIndex: Record<ForgotStep, number> = { email: 0, otp: 1, reset: 2, done: 3 };
 
-    const inputClass = "w-full bg-transparent border border-gray-700 text-gray-100 focus:ring-1 focus:ring-brand focus:border-brand px-4 py-3 rounded outline-none transition-all placeholder:text-gray-600";
+    const inputClass = "w-full bg-gray-800/30 border border-gray-700 text-gray-100 focus:ring-1 focus:ring-brand focus:border-brand px-4 py-3 rounded-xl outline-none transition-all placeholder:text-gray-600";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -229,7 +229,7 @@ function SubmitButton({ loading, label, loadingLabel }: { loading: boolean; labe
         <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#0a0a0a] text-white font-bold py-3.5 border border-brand/40 hover:border-brand hover:bg-black transition-all duration-300 uppercase tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed rounded"
+            className="w-full bg-[#0a0a0a] text-white font-bold py-3.5 border border-brand/40 hover:border-brand hover:bg-black transition-all duration-300 uppercase tracking-widest text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl"
         >
             {loading ? (
                 <>
@@ -295,7 +295,7 @@ export default function LoginPage() {
 
     const closeForgot = useCallback(() => setShowForgot(false), []);
 
-    const inputClass = "w-full bg-transparent border border-gray-700 text-gray-100 focus:ring-1 focus:ring-brand focus:border-brand px-4 py-3 rounded outline-none transition-all placeholder:text-gray-600";
+    const inputClass = "w-full bg-gray-800/30 border border-gray-700 text-gray-100 focus:ring-1 focus:ring-brand focus:border-brand px-4 py-3 rounded-xl outline-none transition-all placeholder:text-gray-600";
 
     return (
         <>

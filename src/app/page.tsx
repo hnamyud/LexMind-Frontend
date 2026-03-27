@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import StarryBackground from "@/components/home/StarryBackground";
+import NeuralMeshBackground from "@/components/home/NeuralMeshBackground";
 import { authService } from "@/lib/authService";
 import { setAccessToken } from "@/lib/apiClient";
 
@@ -38,15 +38,17 @@ function HomePageInner() {
     setMounted(true);
   }, []);
 
-// ─── Terminal Demo Component ───────────────────────────────────────────────────
+// ─── ChatBubble Demo Component ───────────────────────────────────────────────
 const USER_Q = "Tôi 17 tuổi lái xe máy 110cc thì có vi phạm luật giao thông không?";
-const BOT_A = `Hành vi vi phạm: Người từ đủ 16 tuổi đến dưới 18 tuổi điều khiển xe mô tô có dung tích xi-lanh từ 50 cm3 trở lên.
-
-Luật áp dụng: [Điều 18, Khoản 4, Điểm a, Nghị định 168/2024/NĐ-CP]
-
-Phân tích: Bạn 17 tuổi — "người từ đủ 16 tuổi đến dưới 18 tuổi". Xe máy 110cc là "xe mô tô có dung tích xi-lanh từ 50 cm3 trở lên" — đây là hành vi vi phạm về điều kiện người điều khiển xe cơ giới.
-
-Hình phạt: Phạt tiền từ 400.000 đồng đến 600.000 đồng.`;
+const BOT_A_PARTS = {
+  intro: "Hành vi vi phạm:",
+  detail: "Người từ đủ 16 tuổi đến dưới 18 tuổi điều khiển xe mô tô có dung tích xi-lanh từ 50 cm³ trở lên.",
+  lawRefs: [
+    "Điều 18, Khoản 4, Điểm a, NĐ 168/2024"
+  ],
+  analysis: "Bạn 17 tuổi — thuộc nhóm \"người từ đủ 16 tuổi đến dưới 18 tuổi\". Xe máy 110cc là xe mô tô có dung tích xi-lanh từ 50 cm³ trở lên — đây là vi phạm về điều kiện người điều khiển phương tiện.",
+  penalty: "Phạt tiền từ 400.000đ đến 600.000đ"
+};
 
 function useTypewriter(text: string, speed = 18, startDelay = 0, active = false) {
   const [displayed, setDisplayed] = useState("");
@@ -69,7 +71,7 @@ function useTypewriter(text: string, speed = 18, startDelay = 0, active = false)
   return { displayed, done };
 }
 
-function TerminalDemo() {
+function ChatBubbleDemo() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [phase, setPhase] = useState<"idle"|"user"|"thinking"|"bot">("idle");
@@ -89,10 +91,10 @@ function TerminalDemo() {
     setPhase("user");
   }, [visible]);
 
+  const fullBotText = `${BOT_A_PARTS.intro} ${BOT_A_PARTS.detail}\n\n${BOT_A_PARTS.analysis}\n\n${BOT_A_PARTS.penalty}`;
   const qTyper = useTypewriter(USER_Q, 22, 200, phase === "user" || phase === "thinking" || phase === "bot");
-  const aTyper = useTypewriter(BOT_A, 10, 0, phase === "bot");
+  const aTyper = useTypewriter(fullBotText, 12, 0, phase === "bot");
 
-  // After user Q done → thinking → bot answer
   useEffect(() => {
     if (qTyper.done && phase === "user") {
       const t = setTimeout(() => setPhase("thinking"), 400);
@@ -112,26 +114,23 @@ function TerminalDemo() {
   }, [qTyper.displayed, aTyper.displayed]);
 
   return (
-    <div ref={ref} className="relative rounded-xl p-2 overflow-hidden shadow-2xl" style={{ border: "1px solid rgba(255,255,255,0.1)", backgroundColor: "rgba(18,18,18,0.4)", backdropFilter: "blur(12px)" }}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(0,242,255,0.05), transparent)" }} />
+    <div ref={ref} className="relative rounded-2xl overflow-hidden shadow-2xl text-left" style={{ border: "1px solid rgba(0,210,235,0.15)", backgroundColor: "rgba(12,12,18,0.7)", backdropFilter: "blur(20px)" }}>
       {/* Window bar */}
-      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div className="flex items-center gap-2 px-5 py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
         <div className="flex gap-1.5">
           {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} className="size-2.5 rounded-full" style={{ backgroundColor: c, opacity: 0.8 }} />)}
         </div>
-        <div className="flex-1 text-center text-[10px] uppercase tracking-widest font-bold" style={{ color: "#64748b" }}>LexMind Terminal v1.0.4</div>
+        <div className="flex-1 text-center text-[11px] font-semibold tracking-wide" style={{ color: "#64748b" }}>LexMind Chat</div>
       </div>
-      {/* Body */}
-      <div ref={bodyRef} className="rounded-b-lg flex flex-col gap-5 p-6 text-left overflow-y-auto" style={{ backgroundColor: "rgba(5,5,5,0.85)", minHeight: "340px", maxHeight: "440px" }}>
+
+      {/* Chat body */}
+      <div ref={bodyRef} className="flex flex-col gap-4 p-5 md:p-6 overflow-y-auto" style={{ minHeight: "340px", maxHeight: "440px" }}>
         {/* User bubble */}
         {phase !== "idle" && (
-          <div className="flex justify-end gap-3 items-end">
-            <div className="max-w-[70%] rounded-xl px-4 py-3 text-sm leading-relaxed font-mono" style={{ backgroundColor: "rgba(0,242,255,0.1)", border: "1px solid rgba(0,242,255,0.2)", color: "#e2e8f0" }}>
+          <div className="flex justify-end">
+            <div className="max-w-[75%] rounded-2xl rounded-tr-sm px-4 py-3 text-sm leading-relaxed" style={{ backgroundColor: "rgba(0,210,235,0.12)", border: "1px solid rgba(0,210,235,0.2)", color: "#e2e8f0" }}>
               {qTyper.displayed}
-              {!qTyper.done && <span className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse" style={{ backgroundColor: "#00f2ff" }} />}
-            </div>
-            <div className="size-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
-              <span className="material-symbols-outlined text-xs" style={{ color: "#94a3b8" }}>person</span>
+              {!qTyper.done && <span className="inline-block w-1.5 h-4 ml-0.5 align-middle animate-pulse rounded-sm" style={{ backgroundColor: "#00f2ff" }} />}
             </div>
           </div>
         )}
@@ -139,14 +138,14 @@ function TerminalDemo() {
         {/* Thinking indicator */}
         {phase === "thinking" && (
           <div className="flex gap-3 items-start">
-            <div className="size-7 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(0,242,255,0.2)" }}>
-              <span className="material-symbols-outlined text-xs" style={{ color: "#00f2ff" }}>smart_toy</span>
+            <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
+              <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
             </div>
-            <div className="px-4 py-3 rounded-xl text-[11px] font-mono flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.05)", color: "rgba(0,242,255,0.7)", border: "1px solid rgba(0,242,255,0.1)" }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "#00f2ff" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "#00f2ff" }} />
-              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "#00f2ff" }} />
-              <span className="ml-1 uppercase tracking-widest">Đang phân tích Nghị định 168/2024...</span>
+            <div className="px-4 py-3 rounded-2xl rounded-tl-sm text-[12px] flex items-center gap-2" style={{ backgroundColor: "rgba(255,255,255,0.04)", color: "rgba(0,210,235,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "#00d2eb" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "#00d2eb" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "#00d2eb" }} />
+              <span className="ml-1 text-[11px]">Đang phân tích Nghị định 168/2024...</span>
             </div>
           </div>
         )}
@@ -154,34 +153,36 @@ function TerminalDemo() {
         {/* Bot answer */}
         {phase === "bot" && (
           <div className="flex gap-3 items-start">
-            <div className="size-7 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: "rgba(0,242,255,0.2)" }}>
-              <span className="material-symbols-outlined text-xs" style={{ color: "#00f2ff" }}>smart_toy</span>
+            <div className="size-8 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, rgba(0,210,235,0.2), rgba(0,180,200,0.1))" }}>
+              <span className="material-symbols-outlined text-sm" style={{ color: "#00f2ff" }}>smart_toy</span>
             </div>
-            <div className="max-w-[85%] rounded-xl px-4 py-3 text-xs leading-relaxed font-mono whitespace-pre-wrap" style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#cbd5e1" }}>
-              {aTyper.displayed}
-              {!aTyper.done && <span className="inline-block w-1.5 h-3.5 ml-0.5 align-middle animate-pulse" style={{ backgroundColor: "#00f2ff" }} />}
+            <div className="max-w-[85%] flex flex-col gap-3">
+              {/* Main content bubble */}
+              <div className="rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm leading-relaxed" style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "#cbd5e1" }}>
+                <p className="whitespace-pre-wrap">{aTyper.displayed}</p>
+                {!aTyper.done && <span className="inline-block w-1.5 h-3.5 ml-0.5 align-middle animate-pulse rounded-sm" style={{ backgroundColor: "#00f2ff" }} />}
+              </div>
+
+              {/* Law reference chips - show after typing done */}
+              {aTyper.done && (
+                <div className="flex flex-wrap gap-1.5 pl-1 animate-[fadeIn_0.4s_ease-out]">
+                  {BOT_A_PARTS.lawRefs.map((ref) => (
+                    <span key={ref} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium" style={{ backgroundColor: "rgba(0,210,235,0.1)", border: "1px solid rgba(0,210,235,0.2)", color: "#00d2eb" }}>
+                      <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      {ref}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
-
-        {/* Footer status */}
-        <div className="mt-auto pt-4 flex items-center justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <span className="text-[10px] font-mono uppercase tracking-widest" style={{ color: "rgba(0,242,255,0.5)" }}>
-            {phase === "idle" && "LEXMIND READY..."}
-            {phase === "user" && "RECEIVING QUERY..."}
-            {phase === "thinking" && "ANALYZING DECREE 168/2024... [NĐ-CP]"}
-            {phase === "bot" && (aTyper.done ? "✓ RESPONSE COMPLETE" : "STREAMING ANSWER...")}
-          </span>
-          <div className="flex gap-2">
-            <div className="h-2 w-12 rounded" style={{ backgroundColor: phase !== "idle" ? "rgba(0,242,255,0.3)" : "rgba(255,255,255,0.1)" }} />
-            <div className="h-2 w-8 rounded" style={{ backgroundColor: "rgba(255,255,255,0.1)" }} />
-          </div>
-        </div>
       </div>
     </div>
   );
 }
-
 
   return (
     <div
@@ -189,10 +190,16 @@ function TerminalDemo() {
       className="min-h-screen font-[family-name:var(--font-public-sans)] selection:bg-[#00f2ff33]"
     >
       <div className="relative min-h-screen overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <StarryBackground />
+        {/* Background: Neural Network Mesh (Vanta NET) */}
+        <div className="absolute top-0 left-0 w-full h-[70vh] sm:h-[800px] z-0"
+             style={{ maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)" }}>
+          <NeuralMeshBackground />
         </div>
+
+        {/* Deep space gradient overlay for depth */}
+        <div className="absolute inset-0 pointer-events-none z-[1]" style={{
+          background: "radial-gradient(ellipse at 50% 0%, rgba(0,20,30,0.3) 0%, transparent 60%), radial-gradient(ellipse at 50% 100%, rgba(5,5,5,0.8) 0%, transparent 50%)"
+        }} />
 
         {/* Navigation */}
         <header className="relative z-10 flex items-center justify-between px-4 py-6 md:px-12 lg:px-24">
@@ -263,7 +270,7 @@ function TerminalDemo() {
         </header>
 
         {/* Hero Section */}
-        <main className="relative z-10 flex flex-col items-center justify-center px-4 pt-16 pb-24 text-center md:px-6 md:pt-32 lg:pt-48">
+        <main className="relative z-10 flex flex-col items-center justify-center px-4 pt-8 pb-16 text-center md:px-6 md:pt-16 lg:pt-20">
           {/* Beta Badge */}
           <div
             className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full"
@@ -290,17 +297,26 @@ function TerminalDemo() {
             </span>
           </div>
 
-          {/* Headline */}
+          {/* Headline – Serif/Sans-serif mix */}
           <h1 className="max-w-4xl text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-black tracking-tighter leading-[1.1] md:leading-[0.9] text-white mb-6 md:mb-8">
             THE INTELLIGENCE <br className="hidden md:block" />
             <span
               className="text-transparent bg-clip-text"
               style={{
                 backgroundImage:
-                  "linear-gradient(to right, #ffffff, #00f2ff, rgba(255,255,255,0.4))",
+                  "linear-gradient(to right, #ffffff, #00d2eb, rgba(255,255,255,0.4))",
               }}
             >
-              BEHIND MODERN LAW.
+              BEHIND MODERN{" "}
+            </span>
+            <span
+              className="font-[family-name:var(--font-playfair)] italic"
+              style={{
+                color: "#ffffff",
+                textShadow: "0 0 40px rgba(0,210,235,0.3)",
+              }}
+            >
+              LAW.
             </span>
           </h1>
 
@@ -340,9 +356,9 @@ function TerminalDemo() {
             </button>
           </div>
 
-          {/* Terminal Mockup */}
-          <div className="mt-20 md:mt-32 w-full max-w-5xl mx-auto px-4">
-            <TerminalDemo />
+          {/* Chat Bubble Demo */}
+          <div className="mt-10 md:mt-12 w-full max-w-5xl mx-auto px-4">
+            <ChatBubbleDemo />
           </div>
         </main>
 

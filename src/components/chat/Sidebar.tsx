@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useConversationStore } from "@/store/conversationStore";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useTheme } from "@/providers/ThemeProvider";
 
 interface SidebarProps {
     isOpen?: boolean;       // mobile overlay open state
@@ -27,6 +28,7 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
         updateConversation,
         deleteConversation,
     } = useConversationStore();
+    const { theme, toggleTheme } = useTheme();
 
     const [popoverOpen, setPopoverOpen] = useState(false);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -122,7 +124,6 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
     };
 
     const isAuthenticated = !!accessToken;
-    // Mobile sidebar is always "expanded" (it's a full-width overlay)
     const showFull = isExpanded || isOpen;
     const grouped = groupByDate(conversations);
 
@@ -131,27 +132,33 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
             {/* Mobile Overlay */}
             {isOpen && (
                 <div
-                    className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+                    className="md:hidden fixed inset-0 z-40"
+                    style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
                     onClick={onClose}
                 />
             )}
 
             <nav
                 className={`
-                    bg-sidebar border-r border-gray-800 flex flex-col h-full shrink-0
+                    flex flex-col h-full shrink-0
                     fixed md:relative z-50
                     transition-all duration-300 ease-in-out
                     ${showFull ? "w-64" : "w-16"}
                     ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
                 `}
+                style={{
+                    backgroundColor: "var(--bg-sidebar)",
+                    borderRight: "1px solid var(--border-primary)",
+                }}
             >
                 {/* ─── Header: Logo + Toggle ─── */}
-                <div className={`flex items-center h-16 shrink-0 border-b border-gray-800/60 overflow-hidden ${showFull ? "px-4 gap-3" : "px-0 justify-center"}`}>
-                    {/* Logo icon — always visible */}
+                <div className={`flex items-center h-14 shrink-0 overflow-hidden ${showFull ? "px-4 gap-3" : "px-0 justify-center"}`}
+                    style={{ borderBottom: "1px solid var(--border-subtle)" }}
+                >
                     <button
                         onClick={onToggleExpand}
-                        className="w-9 h-9 flex-shrink-0 items-center justify-center bg-brand text-black rounded hover:opacity-90 transition-all duration-200
-                            hidden md:flex"
+                        className="w-9 h-9 flex-shrink-0 items-center justify-center rounded hover:opacity-90 transition-all duration-200 hidden md:flex"
+                        style={{ backgroundColor: "var(--accent)", color: "#000" }}
                         title={isExpanded ? "Thu gọn sidebar" : "Mở rộng sidebar"}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,24 +167,28 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                         </svg>
                     </button>
 
-                    {/* Mobile logo icon (non-clickable) */}
-                    <div className="md:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center bg-brand text-black rounded">
+                    {/* Mobile logo icon */}
+                    <div className="md:hidden w-9 h-9 flex-shrink-0 flex items-center justify-center rounded"
+                        style={{ backgroundColor: "var(--accent)", color: "#000" }}
+                    >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"
                                 strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
                         </svg>
                     </div>
 
-                    {/* LexMind text + close button — only when full */}
                     {showFull && (
                         <>
-                            <Link href="/" className="flex-1 min-w-0 text-lg font-bold tracking-tight text-white truncate">
+                            <Link href="/" className="flex-1 min-w-0 text-lg font-bold tracking-tight truncate"
+                                style={{ color: "var(--text-primary)" }}
+                            >
                                 LexMind
                             </Link>
                             {onClose && (
                                 <button
                                     onClick={onClose}
-                                    className="md:hidden flex-shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors rounded hover:bg-gray-800"
+                                    className="md:hidden flex-shrink-0 w-8 h-8 flex items-center justify-center rounded transition-colors"
+                                    style={{ color: "var(--text-muted)" }}
                                 >
                                     <span className="material-symbols-outlined text-[20px]">close</span>
                                 </button>
@@ -191,9 +202,14 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                     <button
                         onClick={handleNewChat}
                         title="Cuộc hội thoại mới"
-                        className={`flex items-center text-sm font-medium text-white bg-gray-800 rounded transition-all duration-200 hover:bg-gray-700 ${showFull ? "w-full gap-3 px-3 py-2" : "w-full justify-center py-2.5"}`}
+                        className={`flex items-center text-sm font-medium rounded transition-all duration-200 ${showFull ? "w-full gap-3 px-3 py-2" : "w-full justify-center py-2.5"}`}
+                        style={{
+                            backgroundColor: "var(--bg-hover)",
+                            color: "var(--text-primary)",
+                            border: "1px solid var(--border-subtle)",
+                        }}
                     >
-                        <svg className="h-5 w-5 text-brand shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 shrink-0" style={{ color: "var(--accent)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path d="M12 4v16m8-8H4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
                         </svg>
                         {showFull && <span>New Chat</span>}
@@ -203,28 +219,32 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                 {/* ─── Conversation List ─── */}
                 <div className={`sidebar-scroll flex-1 overflow-y-auto pb-2 ${showFull ? "px-3 space-y-4" : "px-2"}`}>
                     {showFull && (
-                        // Expanded: full list
                         convLoading && conversations.length === 0 ? (
                             <div className="space-y-2 mt-4">
                                 {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="h-7 rounded bg-gray-800/60 animate-pulse" />
+                                    <div key={i} className="h-7 rounded animate-pulse" style={{ backgroundColor: "var(--bg-hover)" }} />
                                 ))}
                             </div>
                         ) : conversations.length === 0 ? (
-                            <p className="text-xs text-gray-600 text-center mt-8 px-2">
+                            <p className="text-xs text-center mt-8 px-2" style={{ color: "var(--text-faint)" }}>
                                 Chưa có cuộc hội thoại nào.
                             </p>
                         ) : (
                             grouped.map(({ label, items }) => (
                                 <div key={label}>
-                                    <div className="pt-4 pb-1.5 text-[10px] font-semibold text-gray-600 uppercase tracking-wider">
+                                    <div className="pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-wider"
+                                        style={{ color: "var(--text-faint)" }}
+                                    >
                                         {label}
                                     </div>
                                     <div className="space-y-0.5">
                                         {items.map((conv) => (
                                             <div
                                                 key={conv.id}
-                                                className={`group relative flex items-center rounded transition-all ${activeId === conv.id ? "bg-gray-700" : "hover:bg-gray-800/70"}`}
+                                                className="group relative flex items-center rounded transition-all"
+                                                style={{
+                                                    backgroundColor: activeId === conv.id ? "var(--bg-hover)" : undefined,
+                                                }}
                                                 onContextMenu={(e) => handleContextMenu(e, conv.id)}
                                             >
                                                 {editingId === conv.id ? (
@@ -234,13 +254,19 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                                                         onChange={(e) => setEditingTitle(e.target.value)}
                                                         onBlur={commitRename}
                                                         onKeyDown={handleRenameKeyDown}
-                                                        className="flex-1 px-3 py-2 text-xs bg-gray-900 text-gray-200 border border-brand/50 rounded outline-none"
+                                                        className="flex-1 px-3 py-2 text-xs rounded outline-none"
+                                                        style={{
+                                                            backgroundColor: "var(--bg-input)",
+                                                            border: "1px solid var(--accent-border)",
+                                                            color: "var(--text-primary)",
+                                                        }}
                                                     />
                                                 ) : (
                                                     <>
                                                         <button
                                                             onClick={() => handleSelectConversation(conv.id)}
-                                                            className="flex-1 min-w-0 text-left px-3 py-2 text-xs text-gray-400 group-hover:text-gray-200 truncate"
+                                                            className="flex-1 min-w-0 text-left px-3 py-2 text-xs leading-snug line-clamp-2"
+                                                            style={{ color: activeId === conv.id ? "var(--text-primary)" : "var(--text-muted)" }}
                                                             title={conv.title}
                                                         >
                                                             {conv.title || "Cuộc hội thoại chưa đặt tên"}
@@ -248,7 +274,8 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                                                         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 pr-1.5 shrink-0 transition-opacity">
                                                             <button
                                                                 onClick={() => startRename(conv.id, conv.title)}
-                                                                className="p-1 text-gray-600 hover:text-gray-300 rounded transition-colors"
+                                                                className="p-1 rounded transition-colors"
+                                                                style={{ color: "var(--text-faint)" }}
                                                                 title="Đổi tên"
                                                             >
                                                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +285,7 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete(conv.id)}
-                                                                className="p-1 text-gray-600 hover:text-red-400 rounded transition-colors"
+                                                                className="p-1 text-red-400/70 hover:text-red-400 rounded transition-colors"
                                                                 title="Xóa"
                                                             >
                                                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,80 +306,118 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
 
                     {/* Load More */}
                     {showFull && hasMore && !convLoading && (
-                        <button onClick={loadMore} className="w-full text-[10px] text-gray-600 hover:text-gray-400 py-2 transition-colors">
+                        <button onClick={loadMore} className="w-full text-[10px] py-2 transition-colors"
+                            style={{ color: "var(--text-faint)" }}
+                        >
                             Tải thêm...
                         </button>
                     )}
                     {showFull && convLoading && conversations.length > 0 && (
                         <div className="text-center py-2">
-                            <span className="text-[10px] text-gray-600 animate-pulse">Đang tải...</span>
+                            <span className="text-[10px] animate-pulse" style={{ color: "var(--text-faint)" }}>Đang tải...</span>
                         </div>
                     )}
                 </div>
 
-                {/* ─── Auth Section ─── */}
-                <div className={`border-t border-gray-800 shrink-0 ${showFull ? "p-3" : "p-2"}`}>
-                    {isAuthenticated && user ? (
-                        <div ref={popoverRef} className="relative">
-                            {popoverOpen && showFull && (
-                                <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1a1a1a] border border-gray-700 rounded shadow-xl shadow-black/50 overflow-hidden z-50">
-                                    <div className="px-4 py-3 border-b border-gray-800">
-                                        <p className="text-xs font-semibold text-gray-200 truncate">{user.name}</p>
-                                        <p className="text-[10px] text-gray-500 truncate mt-0.5">{user.email}</p>
-                                    </div>
-                                    <button
-                                        id="logout-btn"
-                                        onClick={handleLogout}
-                                        disabled={authLoading}
-                                        className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center gap-2 disabled:opacity-50"
-                                    >
-                                        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                                                strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
-                                        </svg>
-                                        {authLoading ? "Đang đăng xuất..." : "Đăng xuất"}
-                                    </button>
-                                </div>
-                            )}
-                            <button
-                                id="avatar-btn"
-                                onClick={() => showFull ? setPopoverOpen((prev) => !prev) : onToggleExpand()}
-                                title={showFull ? "" : user.name}
-                                className={`w-full flex items-center rounded transition-colors cursor-pointer select-none ${showFull ? "gap-2 px-3 py-2" : "justify-center py-2"} ${popoverOpen ? "bg-gray-700" : "bg-gray-800/60 hover:bg-gray-700/70"}`}
-                            >
-                                <div className="w-7 h-7 rounded-full bg-brand/20 border border-brand/40 flex items-center justify-center text-xs font-bold text-brand uppercase shrink-0">
-                                    {user.name?.charAt(0) ?? user.email?.charAt(0) ?? "U"}
-                                </div>
-                                {showFull && (
-                                    <>
-                                        <div className="flex-1 min-w-0 text-left">
-                                            <p className="text-xs font-semibold text-gray-200 truncate">{user.name}</p>
-                                            <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
-                                        </div>
-                                        <svg
-                                            className={`w-3 h-3 text-gray-500 shrink-0 transition-transform duration-200 ${popoverOpen ? "rotate-180" : ""}`}
-                                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                        >
-                                            <path d="M5 15l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
-                                        </svg>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    ) : (
-                        <Link
-                            href="/login"
-                            id="sidebar-login-link"
-                            title="Đăng nhập"
-                            className={`flex items-center text-sm text-gray-400 hover:text-white transition-all ${showFull ? "px-3 py-2 gap-2" : "justify-center py-2"}`}
+                {/* ─── Theme Toggle + Auth Section ─── */}
+                <div className="shrink-0" style={{ borderTop: "1px solid var(--border-primary)" }}>
+                    {/* Theme Toggle */}
+                    <div className={`${showFull ? "px-3 pt-3 pb-1" : "p-2"}`}>
+                        <button
+                            onClick={toggleTheme}
+                            title={theme === "dark" ? "Chuyển sang Light Mode" : "Chuyển sang Dark Mode"}
+                            className={`flex items-center rounded transition-all duration-200 ${showFull ? "w-full gap-3 px-3 py-2" : "w-full justify-center py-2"}`}
+                            style={{ color: "var(--text-muted)" }}
                         >
-                            <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                                    strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
-                            </svg>
-                            {showFull && <span>Đăng nhập</span>}
-                        </Link>
-                    )}
+                            <span className="material-symbols-outlined text-[20px]">
+                                {theme === "dark" ? "light_mode" : "dark_mode"}
+                            </span>
+                            {showFull && (
+                                <span className="text-xs">
+                                    {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Auth */}
+                    <div className={showFull ? "p-3 pt-1" : "p-2"}>
+                        {isAuthenticated && user ? (
+                            <div ref={popoverRef} className="relative">
+                                {popoverOpen && showFull && (
+                                    <div className="absolute bottom-full left-0 right-0 mb-2 rounded shadow-xl overflow-hidden z-50"
+                                        style={{
+                                            backgroundColor: "var(--bg-secondary)",
+                                            border: "1px solid var(--border-primary)",
+                                        }}
+                                    >
+                                        <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                                            <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{user.name}</p>
+                                            <p className="text-[10px] truncate mt-0.5" style={{ color: "var(--text-faint)" }}>{user.email}</p>
+                                        </div>
+                                        <button
+                                            id="logout-btn"
+                                            onClick={handleLogout}
+                                            disabled={authLoading}
+                                            className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center gap-2 disabled:opacity-50"
+                                        >
+                                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                                    strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                                            </svg>
+                                            {authLoading ? "Đang đăng xuất..." : "Đăng xuất"}
+                                        </button>
+                                    </div>
+                                )}
+                                <button
+                                    id="avatar-btn"
+                                    onClick={() => showFull ? setPopoverOpen((prev) => !prev) : onToggleExpand()}
+                                    title={showFull ? "" : user.name}
+                                    className={`w-full flex items-center rounded transition-colors cursor-pointer select-none ${showFull ? "gap-2 px-3 py-2" : "justify-center py-2"}`}
+                                    style={{ backgroundColor: popoverOpen ? "var(--bg-hover)" : undefined }}
+                                >
+                                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold uppercase shrink-0"
+                                        style={{
+                                            backgroundColor: "var(--accent-soft)",
+                                            border: "1px solid var(--accent-border)",
+                                            color: "var(--accent)",
+                                        }}
+                                    >
+                                        {user.name?.charAt(0) ?? user.email?.charAt(0) ?? "U"}
+                                    </div>
+                                    {showFull && (
+                                        <>
+                                            <div className="flex-1 min-w-0 text-left">
+                                                <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{user.name}</p>
+                                                <p className="text-[10px] truncate" style={{ color: "var(--text-faint)" }}>{user.email}</p>
+                                            </div>
+                                            <svg
+                                                className={`w-3 h-3 shrink-0 transition-transform duration-200 ${popoverOpen ? "rotate-180" : ""}`}
+                                                style={{ color: "var(--text-muted)" }}
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                            >
+                                                <path d="M5 15l7-7 7 7" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                                            </svg>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        ) : (
+                            <Link
+                                href="/login"
+                                id="sidebar-login-link"
+                                title="Đăng nhập"
+                                className={`flex items-center text-sm transition-all ${showFull ? "px-3 py-2 gap-2" : "justify-center py-2"}`}
+                                style={{ color: "var(--text-muted)" }}
+                            >
+                                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                                        strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+                                </svg>
+                                {showFull && <span>Đăng nhập</span>}
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </nav>
 
@@ -360,15 +425,21 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
             {ctxMenu && (
                 <div
                     ref={ctxRef}
-                    className="fixed z-[999] bg-[#1e1e1e] border border-gray-700 rounded shadow-xl shadow-black/60 py-1 min-w-[140px]"
-                    style={{ top: ctxMenu.y, left: ctxMenu.x }}
+                    className="fixed z-[999] rounded shadow-xl py-1 min-w-[140px]"
+                    style={{
+                        top: ctxMenu.y,
+                        left: ctxMenu.x,
+                        backgroundColor: "var(--bg-secondary)",
+                        border: "1px solid var(--border-primary)",
+                    }}
                 >
                     <button
                         onClick={() => {
                             const conv = conversations.find((c) => c.id === ctxMenu.id);
                             if (conv) startRename(conv.id, conv.title);
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-gray-300 hover:bg-gray-700 flex items-center gap-2 transition-colors"
+                        className="w-full text-left px-4 py-2 text-xs flex items-center gap-2 transition-colors"
+                        style={{ color: "var(--text-secondary)" }}
                     >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -408,7 +479,6 @@ function groupByDate(conversations: import("@/lib/conversationService").Conversa
         "Cũ hơn": [],
     };
 
-    // Soft conversations by descending updatedAt/createdAt to ensure newest is at the top
     const sortedConversations = [...conversations].sort((a, b) => {
         const timeA = new Date(a.updatedAt ?? a.createdAt).getTime();
         const timeB = new Date(b.updatedAt ?? b.createdAt).getTime();
