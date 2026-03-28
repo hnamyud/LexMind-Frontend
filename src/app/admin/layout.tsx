@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore, useAuthHasHydrated } from "@/store/authStore";
 import Link from "next/link";
+import { useTheme } from "@/providers/ThemeProvider";
 
 const NAV_ITEMS = [
     {
@@ -59,6 +60,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     const { user } = useAuthStore();
     const hasHydrated = useAuthHasHydrated();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { theme, toggleTheme } = useTheme();
 
     // Role guard
     useEffect(() => {
@@ -70,8 +72,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
     if (!hasHydrated) {
         return (
-            <div className="flex items-center justify-center h-screen bg-[#050505]">
-                <span className="text-gray-500 animate-pulse text-sm tracking-widest uppercase">Đang tải...</span>
+            <div className="flex items-center justify-center h-screen bg-[var(--bg-primary)]">
+                <span className="text-[var(--text-muted)] animate-pulse text-sm tracking-widest uppercase">Đang tải...</span>
             </div>
         );
     }
@@ -81,7 +83,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="flex h-screen bg-[#050505] overflow-hidden">
+        <div className="flex h-screen bg-[var(--bg-primary)] overflow-hidden">
             {/* Mobile overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 bg-black/60 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -90,22 +92,22 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Sidebar */}
             <aside className={`
                 fixed md:static inset-y-0 left-0 z-40
-                w-56 bg-[#0a0a0a] border-r border-gray-800/60 flex flex-col
+                w-56 bg-[var(--bg-sidebar)] border-r border-[var(--border-primary)] flex flex-col
                 transform transition-transform duration-200
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
             `}>
                 {/* Logo / Header */}
-                <div className="px-4 py-5 border-b border-gray-800/60">
+                <div className="px-4 py-5 border-b border-[var(--border-primary)]">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-lg bg-[var(--accent)] text-white shadow-lg flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
                         <div>
-                            <h2 className="text-sm font-bold text-white tracking-wide">LexMind Ops</h2>
-                            <p className="text-[9px] text-orange-400 font-mono uppercase tracking-widest">Admin Panel</p>
+                            <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">LexMind Ops</h2>
+                            <p className="text-[9px] text-[var(--accent)] font-mono uppercase tracking-widest">Admin Panel</p>
                         </div>
                     </div>
                 </div>
@@ -122,8 +124,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                                 className={`
                                     flex items-center gap-3 px-3 py-2.5 rounded text-xs font-bold tracking-widest transition-all
                                     ${isActive
-                                        ? "bg-orange-500/10 text-orange-400 border-l-2 border-orange-500"
-                                        : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/40 border-l-2 border-transparent"
+                                        ? "bg-[var(--accent-soft)] text-[var(--accent)] border-l-2 border-[var(--accent)]"
+                                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)] border-l-2 border-transparent"
                                     }
                                 `}
                             >
@@ -135,14 +137,14 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 </nav>
 
                 {/* Bottom user info */}
-                <div className="px-4 py-4 border-t border-gray-800/60">
+                <div className="px-4 py-4 border-t border-[var(--border-primary)]">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-yellow-600 flex items-center justify-center text-xs font-bold text-black">
+                        <div className="w-8 h-8 rounded-full bg-[var(--accent)] text-white shadow-lg flex items-center justify-center text-xs font-bold">
                             {(user.name || user.email || "A").charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-white font-semibold truncate">{user.name || "Admin"}</p>
-                            <p className="text-[9px] text-orange-400/60 font-mono uppercase tracking-widest">ROOT AUTH</p>
+                            <p className="text-xs text-[var(--text-primary)] font-semibold truncate">{user.name || "Admin"}</p>
+                            <p className="text-[9px] text-[var(--text-muted)] font-mono uppercase tracking-widest">ROOT AUTH</p>
                         </div>
                     </div>
                 </div>
@@ -151,11 +153,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Top bar */}
-                <header className="h-12 border-b border-gray-800/60 bg-[#0a0a0a] flex items-center justify-between px-4 shrink-0">
+                <header className="h-12 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)] flex items-center justify-between px-4 shrink-0">
                     {/* Mobile menu button */}
                     <button
                         onClick={() => setSidebarOpen(true)}
-                        className="md:hidden text-gray-400 hover:text-white transition-colors"
+                        className="md:hidden text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -165,13 +167,22 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                     <div className="hidden md:block" />
 
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                            <span className="text-[10px] text-green-400 font-mono uppercase tracking-widest">SYNC_ACTIVE</span>
+                        <button
+                            onClick={toggleTheme}
+                            title={theme === "dark" ? "Chuyển sang Light Mode" : "Chuyển sang Dark Mode"}
+                            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center justify-center p-1"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">
+                                {theme === "dark" ? "light_mode" : "dark_mode"}
+                            </span>
+                        </button>
+                        <div className="flex items-center gap-1.5 hidden sm:flex">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] text-green-500 font-mono uppercase tracking-widest">SYNC_ACTIVE</span>
                         </div>
                         <Link
                             href="/chat"
-                            className="text-[10px] text-gray-500 hover:text-brand font-mono uppercase tracking-widest transition-colors"
+                            className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] font-mono uppercase tracking-widest transition-colors"
                         >
                             ← Chat
                         </Link>

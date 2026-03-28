@@ -7,7 +7,7 @@ function MetricCard({
     label,
     value,
     sub,
-    accent = "text-white",
+    accent = "text-[var(--text-primary)]",
 }: {
     label: string;
     value: string;
@@ -15,10 +15,10 @@ function MetricCard({
     accent?: string;
 }) {
     return (
-        <div className="bg-[#080808] border border-gray-800/40 rounded-lg p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono mb-1">{label}</p>
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">{label}</p>
             <p className={`text-xl font-bold ${accent}`}>{value}</p>
-            {sub && <p className="text-[10px] text-gray-600 font-mono mt-1">{sub}</p>}
+            {sub && <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-1">{sub}</p>}
         </div>
     );
 }
@@ -37,21 +37,21 @@ function ResponseTimeBar({
     const cachedPct = Math.round((cachedMs / max) * 100);
     return (
         <div className="space-y-1">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">{label}</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono">{label}</p>
             <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                <div className="flex-1 h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
                     <div
                         className="h-full bg-emerald-500 rounded-full transition-all duration-700"
                         style={{ width: `${cachedPct}%` }}
                     />
                 </div>
-                <span className="text-[10px] text-emerald-400 font-mono w-16 text-right">{cachedMs}ms</span>
+                <span className="text-[10px] text-emerald-500 font-mono w-16 text-right">{cachedMs}ms</span>
             </div>
             <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-orange-500 rounded-full" style={{ width: "100%" }} />
+                <div className="flex-1 h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
+                    <div className="h-full bg-[var(--accent)] rounded-full" style={{ width: "100%" }} />
                 </div>
-                <span className="text-[10px] text-orange-400 font-mono w-16 text-right">{nonCachedMs}ms</span>
+                <span className="text-[10px] text-[var(--accent)] font-mono w-16 text-right">{nonCachedMs}ms</span>
             </div>
         </div>
     );
@@ -104,12 +104,12 @@ export default function AdminAIPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold text-white tracking-tight">Hiệu suất AI</h1>
-                    <p className="text-xs text-gray-500 font-mono mt-1">Metrics kỹ thuật, semantic cache & theo dõi lỗi</p>
+                    <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Hiệu suất AI</h1>
+                    <p className="text-xs text-[var(--text-muted)] font-mono mt-1">Metrics kỹ thuật, semantic cache & theo dõi lỗi</p>
                 </div>
                 <button
                     onClick={fetchData}
-                    className="text-[10px] text-gray-400 hover:text-white font-mono uppercase tracking-widest px-3 py-1.5 border border-gray-800 rounded transition-colors"
+                    className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-mono uppercase tracking-widest px-3 py-1.5 border border-[var(--border-primary)] rounded transition-colors bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)]"
                 >
                     Làm mới
                 </button>
@@ -119,34 +119,34 @@ export default function AdminAIPage() {
             {perf && (
                 <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                        <MetricCard label="TB Response Time" value={`${(perf.overview.avgResponseTime / 1000).toFixed(1)}s`} accent="text-orange-400" />
+                        <MetricCard label="TB Response Time" value={`${(perf.overview.avgResponseTime / 1000).toFixed(1)}s`} accent="text-[var(--accent)]" />
                         <MetricCard label="P50" value={`${(perf.overview.p50ResponseTime / 1000).toFixed(1)}s`} />
-                        <MetricCard label="P95" value={`${(perf.overview.p95ResponseTime / 1000).toFixed(1)}s`} accent="text-yellow-400" />
-                        <MetricCard label="P99" value={`${(perf.overview.p99ResponseTime / 1000).toFixed(1)}s`} accent="text-red-400" />
+                        <MetricCard label="P95" value={`${(perf.overview.p95ResponseTime / 1000).toFixed(1)}s`} accent="text-yellow-500" />
+                        <MetricCard label="P99" value={`${(perf.overview.p99ResponseTime / 1000).toFixed(1)}s`} accent="text-red-500" />
                         <MetricCard label="TTFT (TB)" value={`${perf.overview.avgTTFT}ms`} accent="text-brand" />
-                        <MetricCard label="Tổng chi phí" value={`$${perf.overview.totalCost.toFixed(2)}`} accent="text-green-400" />
+                        <MetricCard label="Tổng chi phí" value={`$${perf.overview.totalCost.toFixed(2)}`} accent="text-green-500" />
                         <MetricCard label="Chi phí/tin" value={`$${perf.overview.avgCostPerMessage.toFixed(4)}`} />
                     </div>
 
                     {/* Model Distribution */}
                     {perf.modelDistribution && perf.modelDistribution.length > 0 && (
-                        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-lg p-5">
-                            <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono mb-4">Phân bổ Model</h3>
+                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-5">
+                            <h3 className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-mono mb-4">Phân bổ Model</h3>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-gray-800/60">
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Model</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Số lượng</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">TB Time</th>
+                                        <tr className="border-b border-[var(--border-primary)]">
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Model</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Số lượng</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">TB Time</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {perf.modelDistribution.map((m) => (
-                                            <tr key={m.model} className="border-b border-gray-800/30">
-                                                <td className="px-4 py-2 text-orange-400 font-mono">{m.model}</td>
-                                                <td className="px-4 py-2 text-gray-300 font-mono">{m.count.toLocaleString()}</td>
-                                                <td className="px-4 py-2 text-gray-400 font-mono">{(m.avgTime / 1000).toFixed(1)}s</td>
+                                            <tr key={m.model} className="border-b border-[var(--border-subtle)]">
+                                                <td className="px-4 py-2 text-[var(--accent)] font-mono">{m.model}</td>
+                                                <td className="px-4 py-2 text-[var(--text-primary)] font-mono">{m.count.toLocaleString()}</td>
+                                                <td className="px-4 py-2 text-[var(--text-secondary)] font-mono">{(m.avgTime / 1000).toFixed(1)}s</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -159,7 +159,7 @@ export default function AdminAIPage() {
                     {perf.tokenUsage && (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <MetricCard label="Input Tokens" value={perf.tokenUsage.totalInputTokens.toLocaleString()} accent="text-brand" />
-                            <MetricCard label="Output Tokens" value={perf.tokenUsage.totalOutputTokens.toLocaleString()} accent="text-orange-400" />
+                            <MetricCard label="Output Tokens" value={perf.tokenUsage.totalOutputTokens.toLocaleString()} accent="text-[var(--accent)]" />
                             <MetricCard label="TB Input/tin" value={perf.tokenUsage.avgInputTokensPerMessage.toLocaleString()} />
                         </div>
                     )}
@@ -171,41 +171,41 @@ export default function AdminAIPage() {
                 <div className="space-y-4">
                     {/* Section heading */}
                     <div className="flex items-center gap-3">
-                        <div className="h-px flex-1 bg-gray-800/60" />
+                        <div className="h-px flex-1 bg-[var(--border-primary)]" />
                         <span className="text-[10px] text-emerald-500 uppercase tracking-widest font-mono flex items-center gap-1.5">
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
                             Semantic Cache
                         </span>
-                        <div className="h-px flex-1 bg-gray-800/60" />
+                        <div className="h-px flex-1 bg-[var(--border-primary)]" />
                     </div>
 
                     {/* Overview row */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         {/* Donut / hit-rate visual */}
-                        <div className="bg-[#0a0a0a] border border-emerald-900/30 rounded-xl p-6 flex flex-col items-center justify-center gap-3">
+                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-6 flex flex-col items-center justify-center gap-3">
                             {/* CSS conic-gradient donut */}
                             <div
                                 className="w-24 h-24 rounded-full flex items-center justify-center"
                                 style={{
-                                    background: `conic-gradient(#10b981 0deg ${ringDeg}deg, #1f2937 ${ringDeg}deg 360deg)`,
+                                    background: `conic-gradient(#10b981 0deg ${ringDeg}deg, var(--bg-hover) ${ringDeg}deg 360deg)`,
                                 }}
                             >
-                                <div className="w-16 h-16 rounded-full bg-[#0a0a0a] flex items-center justify-center">
-                                    <span className="text-sm font-bold text-emerald-400">{hitPct.toFixed(1)}%</span>
+                                <div className="w-16 h-16 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center">
+                                    <span className="text-sm font-bold text-emerald-500">{hitPct.toFixed(1)}%</span>
                                 </div>
                             </div>
                             <div className="text-center">
-                                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono">Cache Hit Rate</p>
+                                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono">Cache Hit Rate</p>
                                 <div className="flex items-center justify-center gap-4 mt-2">
                                     <div className="flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                                        <span className="text-[10px] text-gray-400 font-mono">Hit {cache.overview.cacheHits.toLocaleString()}</span>
+                                        <span className="text-[10px] text-[var(--text-secondary)] font-mono">Hit {cache.overview.cacheHits.toLocaleString()}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="w-2 h-2 rounded-full bg-gray-700 inline-block" />
-                                        <span className="text-[10px] text-gray-400 font-mono">Miss {cache.overview.cacheMisses.toLocaleString()}</span>
+                                        <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
+                                        <span className="text-[10px] text-[var(--text-secondary)] font-mono">Miss {cache.overview.cacheMisses.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
@@ -236,7 +236,7 @@ export default function AdminAIPage() {
                             <MetricCard
                                 label="Tổng Time Saved"
                                 value={`${(cache.overview.totalTimeSavedMs / 1000 / 60).toFixed(1)} phút`}
-                                accent="text-emerald-300"
+                                accent="text-emerald-500"
                                 sub={`${(cache.overview.totalTimeSavedMs / 1000).toFixed(0)}s tổng cộng`}
                             />
                         </div>
@@ -244,19 +244,19 @@ export default function AdminAIPage() {
 
                     {/* Response Time Comparison */}
                     {cache.responseTimeComparison && (
-                        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-xl p-5 space-y-5">
+                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-5 space-y-5">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono">
+                                <h3 className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-mono">
                                     So sánh Response Time
                                 </h3>
                                 <div className="flex items-center gap-3 text-[10px] font-mono">
                                     <span className="flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                                        <span className="text-emerald-400">Cached</span>
+                                        <span className="text-emerald-500">Cached</span>
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
-                                        <span className="text-orange-400">Non-cached</span>
+                                        <span className="w-2 h-2 rounded-full bg-[var(--accent)] inline-block" />
+                                        <span className="text-[var(--accent)]">Non-cached</span>
                                     </span>
                                 </div>
                             </div>
@@ -278,18 +278,18 @@ export default function AdminAIPage() {
                                 />
                             </div>
                             {/* Raw numbers */}
-                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-800/40">
+                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[var(--border-primary)]">
                                 <div className="space-y-1 text-[10px] font-mono">
                                     <p className="text-emerald-500 uppercase tracking-widest">Cached</p>
-                                    <p className="text-gray-400">AVG: <span className="text-emerald-400">{cache.responseTimeComparison.cached.avg}ms</span></p>
-                                    <p className="text-gray-400">P50: <span className="text-emerald-400">{cache.responseTimeComparison.cached.p50}ms</span></p>
-                                    <p className="text-gray-400">P95: <span className="text-emerald-400">{cache.responseTimeComparison.cached.p95}ms</span></p>
+                                    <p className="text-[var(--text-secondary)]">AVG: <span className="text-emerald-500">{cache.responseTimeComparison.cached.avg}ms</span></p>
+                                    <p className="text-[var(--text-secondary)]">P50: <span className="text-emerald-500">{cache.responseTimeComparison.cached.p50}ms</span></p>
+                                    <p className="text-[var(--text-secondary)]">P95: <span className="text-emerald-500">{cache.responseTimeComparison.cached.p95}ms</span></p>
                                 </div>
                                 <div className="space-y-1 text-[10px] font-mono">
-                                    <p className="text-orange-500 uppercase tracking-widest">Non-cached</p>
-                                    <p className="text-gray-400">AVG: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.avg}ms</span></p>
-                                    <p className="text-gray-400">P50: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.p50}ms</span></p>
-                                    <p className="text-gray-400">P95: <span className="text-orange-400">{cache.responseTimeComparison.nonCached.p95}ms</span></p>
+                                    <p className="text-[var(--accent)] uppercase tracking-widest">Non-cached</p>
+                                    <p className="text-[var(--text-secondary)]">AVG: <span className="text-[var(--accent)]">{cache.responseTimeComparison.nonCached.avg}ms</span></p>
+                                    <p className="text-[var(--text-secondary)]">P50: <span className="text-[var(--accent)]">{cache.responseTimeComparison.nonCached.p50}ms</span></p>
+                                    <p className="text-[var(--text-secondary)]">P95: <span className="text-[var(--accent)]">{cache.responseTimeComparison.nonCached.p95}ms</span></p>
                                 </div>
                             </div>
                         </div>
@@ -297,19 +297,19 @@ export default function AdminAIPage() {
 
                     {/* Time Series Table */}
                     {cache.timeSeries && cache.timeSeries.length > 0 && (
-                        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-xl overflow-hidden">
-                            <div className="px-5 py-4 border-b border-gray-800/60">
-                                <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono">Cache Hit Rate theo ngày</h3>
+                        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl overflow-hidden">
+                            <div className="px-5 py-4 border-b border-[var(--border-primary)] bg-[var(--bg-primary)]">
+                                <h3 className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-mono">Cache Hit Rate theo ngày</h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-gray-800/60">
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Ngày</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Hits</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Misses</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Hit Rate</th>
-                                            <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Visual</th>
+                                        <tr className="border-b border-[var(--border-primary)] bg-[var(--bg-primary)]">
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Ngày</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Hits</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Misses</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Hit Rate</th>
+                                            <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Visual</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -318,13 +318,13 @@ export default function AdminAIPage() {
                                             const color =
                                                 pct >= 40 ? "bg-emerald-500" : pct >= 20 ? "bg-yellow-500" : "bg-red-500";
                                             return (
-                                                <tr key={row.date} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
-                                                    <td className="px-4 py-2.5 text-gray-300 font-mono">{row.date}</td>
-                                                    <td className="px-4 py-2.5 text-emerald-400 font-mono">{row.hits}</td>
-                                                    <td className="px-4 py-2.5 text-gray-500 font-mono">{row.misses}</td>
-                                                    <td className="px-4 py-2.5 font-mono font-bold text-emerald-400">{pct}%</td>
+                                                <tr key={row.date} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors">
+                                                    <td className="px-4 py-2.5 text-[var(--text-primary)] font-mono">{row.date}</td>
+                                                    <td className="px-4 py-2.5 text-emerald-500 font-mono">{row.hits}</td>
+                                                    <td className="px-4 py-2.5 text-[var(--text-muted)] font-mono">{row.misses}</td>
+                                                    <td className="px-4 py-2.5 font-mono font-bold text-emerald-500">{pct}%</td>
                                                     <td className="px-4 py-2.5 w-32">
-                                                        <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                                                        <div className="h-1.5 bg-[var(--bg-hover)] rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full ${color} rounded-full transition-all duration-500`}
                                                                 style={{ width: `${pct}%` }}
@@ -344,9 +344,9 @@ export default function AdminAIPage() {
 
             {/* ─── Errors ───────────────────────────────────────────────────────── */}
             {errors && (
-                <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-lg overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-800/60 flex items-center justify-between">
-                        <h3 className="text-xs text-red-400 uppercase tracking-widest font-mono flex items-center gap-2">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg overflow-hidden">
+                    <div className="px-5 py-4 border-b border-[var(--border-primary)] bg-[var(--bg-primary)] flex items-center justify-between">
+                        <h3 className="text-xs text-red-500 uppercase tracking-widest font-mono flex items-center gap-2">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
@@ -355,7 +355,7 @@ export default function AdminAIPage() {
                         {errors.errorsByType && (
                             <div className="flex gap-2 flex-wrap">
                                 {errors.errorsByType.map((e) => (
-                                    <span key={e.type} className="text-[9px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded font-mono">
+                                    <span key={e.type} className="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded font-mono border border-red-500/20">
                                         {e.type}: {e.count}
                                     </span>
                                 ))}
@@ -365,27 +365,27 @@ export default function AdminAIPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                             <thead>
-                                <tr className="border-b border-gray-800/60">
-                                    <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Loại lỗi</th>
-                                    <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Nội dung</th>
-                                    <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Câu hỏi</th>
-                                    <th className="px-4 py-2 text-left text-gray-500 font-mono uppercase tracking-widest">Thời gian</th>
+                                <tr className="border-b border-[var(--border-primary)] bg-[var(--bg-primary)]">
+                                    <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Loại lỗi</th>
+                                    <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Nội dung</th>
+                                    <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Câu hỏi</th>
+                                    <th className="px-4 py-2 text-left text-[var(--text-muted)] font-mono uppercase tracking-widest">Thời gian</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {errors.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-6 text-center text-gray-600 font-mono">
+                                        <td colSpan={4} className="px-4 py-6 text-center text-[var(--text-muted)] font-mono">
                                             Không có lỗi 🎉
                                         </td>
                                     </tr>
                                 ) : (
                                     errors.data.map((e, i) => (
-                                        <tr key={`${e.messageId}-${i}`} className="border-b border-gray-800/30 hover:bg-gray-800/20 transition-colors">
-                                            <td className="px-4 py-2 text-red-400 font-mono">{e.errorType}</td>
-                                            <td className="px-4 py-2 text-gray-400 truncate max-w-[200px]">{e.errorMessage}</td>
-                                            <td className="px-4 py-2 text-gray-300 truncate max-w-[200px]">{e.question}</td>
-                                            <td className="px-4 py-2 text-gray-500 font-mono text-[10px]">
+                                        <tr key={`${e.messageId}-${i}`} className="border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors">
+                                            <td className="px-4 py-2 text-red-500 font-mono">{e.errorType}</td>
+                                            <td className="px-4 py-2 text-[var(--text-secondary)] truncate max-w-[200px]" title={e.errorMessage}>{e.errorMessage}</td>
+                                            <td className="px-4 py-2 text-[var(--text-primary)] truncate max-w-[200px]" title={e.question}>{e.question}</td>
+                                            <td className="px-4 py-2 text-[var(--text-muted)] font-mono text-[10px]">
                                                 {new Date(e.timestamp).toLocaleString("vi-VN")}
                                             </td>
                                         </tr>

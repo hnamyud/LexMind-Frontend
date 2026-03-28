@@ -19,14 +19,14 @@ function StatCard({
     badge?: React.ReactNode;
 }) {
     return (
-        <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-lg p-4 md:p-5 relative overflow-hidden group hover:border-gray-700/80 transition-colors">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4 md:p-5 relative overflow-hidden group hover:border-[var(--accent)]/50 transition-colors">
             <div className="flex items-start justify-between mb-3">
-                <span className="text-gray-600">{icon}</span>
+                <span className="text-[var(--text-muted)]">{icon}</span>
                 {badge}
             </div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono mb-1">{label}</p>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">{label}</p>
             <p className={`text-2xl md:text-3xl font-bold ${accent}`}>{value}</p>
-            {sub && <p className="text-[10px] text-gray-600 font-mono mt-1">{sub}</p>}
+            {sub && <p className="text-[10px] text-[var(--text-secondary)] font-mono mt-1">{sub}</p>}
         </div>
     );
 }
@@ -79,20 +79,20 @@ export default function AdminDashboardPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             {/* Hero Header */}
-            <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-xl p-6 md:p-8 relative overflow-hidden">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl p-6 md:p-8 relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+                            <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
                                 Legal Intelligence Hub
                             </h1>
-                            <p className="text-sm text-gray-500 mt-1 font-mono">
+                            <p className="text-sm text-[var(--text-secondary)] mt-1 font-mono">
                                 Giám sát hệ thống LexMind theo thời gian thực.
                             </p>
                         </div>
                         <button
                             onClick={fetchData}
-                            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-black text-xs font-bold uppercase tracking-widest rounded transition-colors flex items-center gap-2 self-start"
+                            className="px-5 py-2.5 bg-[var(--bg-primary)] hover:bg-[var(--bg-hover)] border border-[var(--border-primary)] text-[var(--text-primary)] text-xs font-bold uppercase tracking-widest rounded transition-colors flex items-center gap-2 self-start"
                         >
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -103,16 +103,16 @@ export default function AdminDashboardPage() {
 
                     {/* Health Services */}
                     {health && (
-                        <div className="mt-6 p-4 bg-[#080808] border border-gray-800/40 rounded-lg">
-                            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-mono mb-3">Trạng thái dịch vụ</p>
+                        <div className="mt-6 p-4 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg">
+                            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-3">Trạng thái dịch vụ</p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {Object.entries(health.services).map(([name, svc]) => (
-                                    <div key={name} className="flex items-center justify-between px-3 py-2 bg-[#0d0d0d] rounded border border-gray-800/40">
+                                    <div key={name} className="flex items-center justify-between px-3 py-2 bg-[var(--bg-secondary)] rounded border border-[var(--border-primary)]">
                                         <div className="flex items-center">
                                             <ServiceDot status={svc.status} />
-                                            <span className="text-xs text-gray-300 font-mono capitalize">{name}</span>
+                                            <span className="text-xs text-[var(--text-primary)] font-mono capitalize">{name}</span>
                                         </div>
-                                        <span className="text-[10px] text-gray-600 font-mono">{svc.responseTime}ms</span>
+                                        <span className="text-[10px] text-[var(--text-muted)] font-mono">{svc.responseTime}ms</span>
                                     </div>
                                 ))}
                             </div>
@@ -121,7 +121,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Decorative bg gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 via-transparent to-[var(--accent)]/5 pointer-events-none" />
             </div>
 
             {error && (
@@ -142,9 +142,9 @@ export default function AdminDashboardPage() {
                         label="Người dùng hoạt động"
                         value={stats.activeUsers.last24h.toLocaleString()}
                         sub={`7 ngày: ${stats.activeUsers.last7d.toLocaleString()} · 30 ngày: ${stats.activeUsers.last30d.toLocaleString()}`}
-                        accent="text-white"
+                        accent="text-[var(--text-primary)]"
                         badge={
-                            <span className="text-[9px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-mono uppercase">
+                            <span className="text-[9px] bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded-full font-mono uppercase">
                                 24h
                             </span>
                         }
@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
                         label="Tin nhắn 24h"
                         value={stats.requestRate.messagesLast24h.toLocaleString()}
                         sub={`TB/ngày: ${stats.requestRate.avgMessagesPerDay}`}
-                        accent="text-orange-400"
+                        accent="text-[var(--accent)]"
                     />
                     <StatCard
                         icon={
@@ -188,37 +188,37 @@ export default function AdminDashboardPage() {
             {/* Quick Info Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* System Status Summary */}
-                <div className="bg-[#0d0d0d] border border-gray-800/60 rounded-lg p-5">
-                    <h3 className="text-xs text-gray-500 uppercase tracking-widest font-mono mb-4">Tổng quan hệ thống</h3>
+                <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-5">
+                    <h3 className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-mono mb-4">Tổng quan hệ thống</h3>
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Trạng thái tổng thể</span>
-                            <span className={`text-xs font-mono uppercase tracking-widest px-2 py-1 rounded ${
+                            <span className="text-sm text-[var(--text-secondary)]">Trạng thái tổng thể</span>
+                            <span className={`text-xs font-mono uppercase tracking-widest px-2 py-1 rounded border ${
                                 health?.status === "healthy"
-                                    ? "text-green-400 bg-green-500/10"
-                                    : "text-red-400 bg-red-500/10"
+                                    ? "text-green-500 bg-green-500/10 border-green-500/20"
+                                    : "text-red-500 bg-red-500/10 border-red-500/20"
                             }`}>
                                 {health?.status || "N/A"}
                             </span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Tin nhắn 7 ngày</span>
-                            <span className="text-sm text-white font-mono">{stats?.requestRate.messagesLast7d.toLocaleString() || "—"}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Tin nhắn 7 ngày</span>
+                            <span className="text-sm text-[var(--text-primary)] font-mono">{stats?.requestRate.messagesLast7d.toLocaleString() || "—"}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Người dùng 30 ngày</span>
-                            <span className="text-sm text-white font-mono">{stats?.activeUsers.last30d.toLocaleString() || "—"}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Người dùng 30 ngày</span>
+                            <span className="text-sm text-[var(--text-primary)] font-mono">{stats?.activeUsers.last30d.toLocaleString() || "—"}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-400">Request chậm 24h</span>
-                            <span className="text-sm text-orange-400 font-mono">{stats?.performance.slowRequests24h ?? "—"}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Request chậm 24h</span>
+                            <span className="text-sm text-[var(--accent)] font-mono">{stats?.performance.slowRequests24h ?? "—"}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* System Log Placeholder */}
-                <div className="bg-[#0d0d0d] border border-orange-500/20 rounded-lg p-5 relative overflow-hidden">
-                    <h3 className="text-xs text-orange-400 uppercase tracking-widest font-mono mb-4 flex items-center gap-2">
+                <div className="bg-[var(--bg-secondary)] border border-[var(--accent-border)] rounded-lg p-5 relative overflow-hidden">
+                    <h3 className="text-xs text-[var(--accent)] uppercase tracking-widest font-mono mb-4 flex items-center gap-2">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
@@ -226,27 +226,27 @@ export default function AdminDashboardPage() {
                     </h3>
                     <div className="space-y-2 font-mono text-[11px]">
                         <div>
-                            <span className="text-gray-600">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
-                            <span className="text-green-400">[SYSTEM]</span>{" "}
-                            <span className="text-gray-400">Health check passed. All services operational.</span>
+                            <span className="text-[var(--text-muted)]">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
+                            <span className="text-green-500">[SYSTEM]</span>{" "}
+                            <span className="text-[var(--text-secondary)]">Health check passed. All services operational.</span>
                         </div>
                         <div>
-                            <span className="text-gray-600">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
-                            <span className="text-cyan-400">[SYNC]</span>{" "}
-                            <span className="text-gray-400">Database integrity verified.</span>
+                            <span className="text-[var(--text-muted)]">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
+                            <span className="text-cyan-500">[SYNC]</span>{" "}
+                            <span className="text-[var(--text-secondary)]">Database integrity verified.</span>
                         </div>
                         <div>
-                            <span className="text-gray-600">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
-                            <span className="text-orange-400">[AI]</span>{" "}
-                            <span className="text-gray-400">Model performance within threshold.</span>
+                            <span className="text-[var(--text-muted)]">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
+                            <span className="text-[var(--accent)]">[AI]</span>{" "}
+                            <span className="text-[var(--text-secondary)]">Model performance within threshold.</span>
                         </div>
                         <div>
-                            <span className="text-gray-600">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
-                            <span className="text-gray-500">_</span>
+                            <span className="text-[var(--text-muted)]">{new Date().toLocaleTimeString("vi-VN")}</span>{" "}
+                            <span className="text-[var(--text-muted)]">_</span>
                         </div>
                     </div>
                     {/* Glow */}
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#0d0d0d] to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[var(--bg-secondary)] to-transparent pointer-events-none" />
                 </div>
             </div>
         </div>

@@ -308,8 +308,8 @@ function AiMessage({
                     <div className="mb-2 space-y-1">
                         {msg.steps.map((s, idx) => (
                             <div key={`step-${s.step}-${idx}`} className="flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-brand/40 animate-pulse" />
-                                <span className="text-[10px] text-gray-600 font-mono">{s.label}</span>
+                                <span className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)", opacity: 0.6 }} />
+                                <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{s.label}</span>
                             </div>
                         ))}
                     </div>
@@ -318,8 +318,8 @@ function AiMessage({
                 {/* Last step khi đang stream answer */}
                 {msg.streaming && msg.content && lastStep && (
                     <div className="flex items-center gap-1.5 mb-2">
-                        <span className="w-1 h-1 rounded-full bg-brand/40 animate-pulse" />
-                        <span className="text-[10px] text-gray-600 font-mono">{lastStep.label}</span>
+                        <span className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)", opacity: 0.6 }} />
+                        <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{lastStep.label}</span>
                     </div>
                 )}
 
@@ -352,15 +352,15 @@ function AiMessage({
                                 }}
                             >{msg.content}</ReactMarkdown>
                             {msg.streaming && !msg.currentProcess && (
-                                <span className="inline-block w-1.5 h-4 bg-brand ml-0.5 animate-pulse align-middle" />
+                                <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: "var(--accent)" }} />
                             )}
                         </div>
                         {msg.streaming && msg.currentProcess && (
                             <div className="flex items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:0ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:150ms]" />
-                                <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:300ms]" />
-                                <span className="text-[11px] text-brand/80 font-mono flex-1">
+                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
+                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
+                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
+                                <span className="text-[11px] font-mono flex-1" style={{ color: "var(--accent)", opacity: 0.8 }}>
                                     <AnimatedProcessText texts={msg.processes || []} />
                                 </span>
                             </div>
@@ -370,12 +370,12 @@ function AiMessage({
                     // Placeholder khi chưa có answer
                     <div className="flex flex-col gap-2">
                         <div className="flex gap-1 items-center h-4">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:0ms]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:150ms]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand/80 animate-bounce [animation-delay:300ms]" />
+                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
+                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
+                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
                         </div>
                         {msg.processes && msg.processes.length > 0 && (
-                            <span className="text-[11px] text-brand/80 font-mono">
+                            <span className="text-[11px] font-mono" style={{ color: "var(--accent)", opacity: 0.8 }}>
                                 <AnimatedProcessText texts={msg.processes} />
                             </span>
                         )}

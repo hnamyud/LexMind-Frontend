@@ -382,7 +382,7 @@ export default function KnowledgeGraphSection() {
         {[
           { v: "2,300+", l: "Legal nodes" },
           { v: "4,800+", l: "Relationships" },
-          { v: "100%",   l: "Citations the latest enacted law" },
+          { v: "99%",   l: "Citations the latest enacted law" },
           { v: "<200ms", l: "Graph query" },
         ].map((s) => (
           <div key={s.l} style={{ textAlign: "center" }}>

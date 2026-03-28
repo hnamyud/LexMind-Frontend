@@ -477,7 +477,7 @@ export default function LoginPage() {
                         )}
 
                         <footer className="mt-16 pt-8 border-t border-gray-800 flex justify-between items-center opacity-50">
-                            <span className="text-[10px] uppercase font-mono text-gray-500">© 2024 LexMind Systems</span>
+                            <span className="text-[10px] uppercase font-mono text-gray-500">© 2026 LexMind</span>
                             <div className="flex gap-4">
                                 <a className="text-[10px] uppercase font-mono text-gray-500 hover:text-brand transition-colors" href="#">Privacy</a>
                                 <a className="text-[10px] uppercase font-mono text-gray-500 hover:text-brand transition-colors" href="#">Terms</a>
