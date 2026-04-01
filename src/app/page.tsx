@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState, Suspense, useRef } from "react";
+import { useAuthStore, useAuthHasHydrated } from "@/store/authStore";
+import { useEffect, useState, Suspense, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import NeuralMeshBackground from "@/components/home/NeuralMeshBackground";
 import KnowledgeGraphSection from "@/components/home/KnowledgeGraphSection";
@@ -10,12 +10,36 @@ import { authService } from "@/lib/authService";
 import { setAccessToken } from "@/lib/apiClient";
 import ReactMarkdown from "react-markdown";
 
+/**
+ * Hook điều hướng thông minh:
+ * - Nếu đã đăng nhập → đi thẳng /chat
+ * - Nếu chưa đăng nhập → đi /login (không qua /chat làm trung gian)
+ * - Nếu chưa hydrate xong → đợi, không navigate vội
+ */
+function useAuthAwareNav() {
+  const router = useRouter();
+  const hasHydrated = useAuthHasHydrated();
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const navigate = useCallback(() => {
+    if (!hasHydrated) return; // chưa hydrate, bỏ qua
+    if (accessToken) {
+      router.push("/chat");
+    } else {
+      router.push("/login");
+    }
+  }, [hasHydrated, accessToken, router]);
+
+  return { navigate, hasHydrated };
+}
+
 function HomePageInner() {
   const { fetchProfile } = useAuthStore();
   const { accessToken, logout } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { navigate: navToChat, hasHydrated } = useAuthAwareNav();
 
   // Xử lý Google OAuth2 callback: ?token=<access-token>
   useEffect(() => {
@@ -259,13 +283,14 @@ function HomePageInner() {
                 Login
               </Link>
             )}
-            <Link
-              href="/chat"
-              className="text-xs font-bold px-6 py-2 rounded uppercase tracking-widest transition-all duration-300"
+            <button
+              onClick={navToChat}
+              disabled={!hasHydrated}
+              className="text-xs font-bold px-6 py-2 rounded uppercase tracking-widest transition-all duration-300 disabled:opacity-60"
               style={{ backgroundColor: "#ffffff", color: "#000000" }}
             >
               Try LexMind
-            </Link>
+            </button>
           </nav>
 
           <button className="md:hidden text-white">
@@ -335,9 +360,10 @@ function HomePageInner() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center">
-            <Link
-              href="/chat"
-              className="group relative flex items-center justify-center h-14 px-10 font-bold uppercase tracking-widest rounded transition-all hover:scale-105 active:scale-95"
+            <button
+              onClick={navToChat}
+              disabled={!hasHydrated}
+              className="group relative flex items-center justify-center h-14 px-10 font-bold uppercase tracking-widest rounded transition-all hover:scale-105 active:scale-95 disabled:opacity-60"
               style={{
                 backgroundColor: "#00f2ff",
                 color: "#000000",
@@ -348,7 +374,7 @@ function HomePageInner() {
               <span className="material-symbols-outlined ml-2 text-sm transition-transform group-hover:translate-x-1">
                 arrow_forward
               </span>
-            </Link>
+            </button>
             <Link
               href="/presentation"
               className="flex items-center justify-center h-14 px-10 font-bold uppercase tracking-widest rounded transition-all"

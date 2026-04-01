@@ -13,7 +13,7 @@
  *   - Profile luôn được sync với server khi reload
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/lib/authService";
 import { useRouter, usePathname } from "next/navigation";
@@ -23,6 +23,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const router = useRouter();
     const pathname = usePathname();
     const initialized = useRef(false);
+    // true trong khi đang async check auth lần đầu
+    const [authChecking, setAuthChecking] = useState(true);
 
     useEffect(() => {
         // Chỉ chạy một lần
@@ -54,11 +56,50 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             );
             if (!success && !isPublic) {
                 router.push("/login");
+                // Giữ authChecking = true → không render gì khi đang redirect
+                return;
             }
+
+            setAuthChecking(false);
         };
 
         init();
     }, [accessToken, fetchProfile, pathname, refresh, router]);
+
+    // Với public routes: render ngay (không block)
+    // Với protected routes: hiện spinner nhẹ cho đến khi auth check xong
+    const publicRoutes = ["/", "/login", "/register", "/presentation"];
+    const isPublic = publicRoutes.some(
+        (route) => pathname === route || pathname?.startsWith(route + "/")
+    );
+
+    if (!isPublic && authChecking) {
+        return (
+            <div
+                style={{
+                    minHeight: "100dvh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "var(--bg-main, #0a0a0f)",
+                }}
+            >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                    <div
+                        style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            border: "2px solid rgba(0,242,255,0.15)",
+                            borderTop: "2px solid #00f2ff",
+                            animation: "spin 0.8s linear infinite",
+                        }}
+                    />
+                    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            </div>
+        );
+    }
 
     return <>{children}</>;
 }
