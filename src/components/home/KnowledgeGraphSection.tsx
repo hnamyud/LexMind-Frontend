@@ -304,15 +304,15 @@ export default function KnowledgeGraphSection() {
           fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 800, color: "#f1f5f9",
           margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-0.025em",
         }}>
-          Each answer has{" "}
-          <span style={{ color: "#00d4b4" }}>an original solution</span>
-          <br />clearly detailed down to every point.
+          Mỗi câu trả lời đều có{" "}
+          <span style={{ color: "#00d4b4" }}>lập luận gốc,</span>
+          <br />minh bạch đến từng chi tiết.
         </h2>
         <p style={{
           color: "#475569", fontSize: "14px", maxWidth: "480px",
           margin: "0 auto", lineHeight: 1.75, fontFamily: "system-ui,sans-serif",
         }}>
-          Hover to view details · Drag to move the node · Scroll to zoom
+          Di chuột để xem chi tiết · Kéo để di chuyển · Cuộn để thu phóng
         </p>
       </div>
 

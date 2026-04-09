@@ -353,9 +353,7 @@ function HomePageInner() {
             className="max-w-xl text-base md:text-lg lg:text-xl font-light mb-10 md:mb-12 leading-relaxed"
             style={{ color: "#94a3b8" }}
           >
-            Advanced legal AI designed for precision, speed, and
-            professional-grade insights. Built for the next generation of
-            counsel.
+            Nền tảng AI pháp lý — chính xác, nhanh chóng, chuyên sâu. Được xây dựng cho thế hệ pháp lý kế tiếp.
           </p>
 
           {/* CTA Buttons */}
@@ -407,10 +405,10 @@ function HomePageInner() {
           {/* Headline & Intro (Full width) */}
           <div className="w-full max-w-4xl text-center mb-16 px-4">
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-6 text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to bottom right, #ffffff, #94a3b8)" }}>
-              Bridging the Gap Between Code and Counsel.
+              Nơi Công nghệ gặp Pháp luật.
             </h2>
             <p className="text-base md:text-xl font-light leading-relaxed text-[#cbd5e1] max-w-3xl mx-auto">
-              &quot;LexMind is a research-driven project dedicated to democratizing legal intelligence through the power of Graph Data and Agentic RAG.&quot;
+              &quot;LexMind là dự án nghiên cứu với sứ mệnh phổ cập trí tuệ pháp lý thông qua Graph Data và Agentic RAG.&quot;
             </p>
           </div>
 
@@ -430,9 +428,9 @@ function HomePageInner() {
               <div className="absolute top-8 right-8 size-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: "rgba(0,242,255,0.1)", boxShadow: "0 0 30px rgba(0,242,255,0.3)" }}>
                 <span className="material-symbols-outlined text-[#00f2ff]">security</span>
               </div>
-              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Zero-Hallucination Integrity</h3>
+              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Tính toàn vẹn — Không ảo giác</h3>
               <p className="relative z-10 text-[#94a3b8] font-light leading-relaxed">
-                By grounding our AI in Neo4j Knowledge Graphs, we ensure every response is anchored in official data sovereignty.
+                Bằng cách neo AI vào Knowledge Graph Neo4j, mọi phản hồi đều được đảm bảo căn cứ từ dữ liệu chính thống.
               </p>
             </div>
 
@@ -449,9 +447,9 @@ function HomePageInner() {
               <div className="absolute top-8 right-8 size-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110" style={{ backgroundColor: "rgba(0,242,255,0.1)" }}>
                 <span className="material-symbols-outlined text-[#00f2ff]">account_tree</span>
               </div>
-              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Logical Transparency</h3>
+              <h3 className="relative z-10 text-2xl font-bold tracking-tight text-white mb-3">Minh bạch lập luận</h3>
               <p className="relative z-10 text-[#94a3b8] font-light leading-relaxed">
-                Unlike &quot;black box&quot; AI, our mission is to show the &quot;reasoning path&quot; behind every legal conclusion.
+                Khác với AI &quot;hộp đen&quot;, sứ mệnh của chúng tôi là hiển thị &quot;con đường suy luận&quot; đằng sau mỗi kết luận pháp lý.
               </p>
             </div>
 
@@ -465,9 +463,9 @@ function HomePageInner() {
                 <span className="material-symbols-outlined text-[#00f2ff] text-2xl">public</span>
               </div>
               <div>
-                <h3 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-2">Democratic Accessibility</h3>
+                <h3 className="text-xl md:text-2xl font-bold tracking-tight text-white mb-2">Pháp lý cho tất cả mọi người</h3>
                 <p className="text-[#94a3b8] font-light leading-relaxed max-w-3xl">
-                  We believe legal clarity shouldn&apos;t be a luxury. LexMind simplifies complex statutes into intuitive insights for everyone.
+                  Chúng tôi tin rằng sự rõ ràng về pháp luật không phải đặc quyền của số ít. LexMind đơn giản hóa các điều khoản phức tạp thành thông tin dễ hiểu.
                 </p>
               </div>
             </div>
