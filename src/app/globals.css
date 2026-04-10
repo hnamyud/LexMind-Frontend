@@ -309,3 +309,161 @@ textarea.chat-input-scroll::-webkit-scrollbar-thumb:active {
   scrollbar-width: thin;
   scrollbar-color: rgba(236, 91, 19, 0.25) transparent;
 }
+
+/* ===== Markdown Body ===== */
+.markdown-body {
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* ─── Markdown Table ─── */
+.md-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-primary);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+}
+
+.md-table-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.md-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-color);
+  border-radius: 100px;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  min-width: 480px;
+}
+
+.md-thead {
+  background: var(--accent-soft);
+}
+
+.md-thead .md-th {
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-bottom: 2px solid var(--accent-border);
+  background: transparent;
+  white-space: nowrap;
+}
+
+.md-th,
+.md-td {
+  padding: 0.55rem 0.875rem;
+  text-align: left;
+  border: 1px solid var(--border-primary);
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+.md-tr:nth-child(even) {
+  background-color: var(--bg-hover);
+}
+
+.md-tr:hover {
+  background-color: var(--accent-soft);
+  transition: background-color 0.15s ease;
+}
+
+/* ─── Markdown Blockquote ─── */
+.md-blockquote {
+  margin: 0.75rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 6px 6px 0;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.8125rem;
+}
+
+.md-blockquote p {
+  margin: 0 !important;
+}
+
+/* ─── Markdown HR ─── */
+.md-hr {
+  border: none;
+  border-top: 1px solid var(--border-primary);
+  margin: 1rem 0;
+}
+
+/* ─── Markdown Inline Code ─── */
+.md-inline-code {
+  font-family: 'Roboto Mono', 'Fira Code', monospace;
+  font-size: 0.8em;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+/* ─── Markdown Code Block ─── */
+.md-code-block {
+  margin: 0.75rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-secondary);
+}
+
+.md-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.md-code-lang {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.md-code-copy {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: color 0.15s ease;
+}
+
+.md-code-copy:hover {
+  color: var(--accent);
+}
+
+.md-code-pre {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  overflow-x: auto;
+  font-family: 'Roboto Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color) transparent;
+}
+
+.md-code-pre::-webkit-scrollbar {
+  height: 4px;
+}
+
+.md-code-pre::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-color);
+  border-radius: 100px;
+}

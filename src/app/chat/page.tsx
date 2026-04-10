@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import ReactMarkdown, { Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { chatService, StreamChunk, StepChunk } from "@/lib/chatService";
 import { messageService } from "@/lib/messageService";
 import { useAuthStore } from "@/store/authStore";
@@ -331,28 +332,104 @@ function AiMessage({
                 {/* Answer content */}
                 {msg.content ? (
                     <div>
-                        <div className="prose prose-sm max-w-none dark:prose-invert" style={{ '--tw-prose-body': 'var(--text-primary)', '--tw-prose-headings': 'var(--accent)', '--tw-prose-bold': 'var(--text-primary)', '--tw-prose-code': 'var(--accent)', '--tw-prose-bullets': 'var(--text-muted)' } as React.CSSProperties}>
-                            <ReactMarkdown
-                                components={{
-                                    // Override text rendering inside <p>, <li>, <strong>, etc.
-                                    p: ({ children }) => {
+                        <div className="markdown-body" style={{ color: 'var(--text-secondary)' }}>
+                            {msg.streaming && msg.content.includes('|') ? (
+                                <div className="whitespace-pre-wrap leading-relaxed break-words text-[13.5px]">
+                                    <LawRefText text={msg.content} onLawClick={onLawClick} />
+                                    {!msg.currentProcess && (
+                                        <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: "var(--accent)" }} />
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                    p: ({ children }) => (
+                                        <p className="mb-3 last:mb-0 leading-relaxed">
+                                            {processChildren(children, onLawClick)}
+                                        </p>
+                                    ),
+                                    li: ({ children }) => (
+                                        <li className="mb-1 leading-relaxed">
+                                            {processChildren(children, onLawClick)}
+                                        </li>
+                                    ),
+                                    ul: ({ children }) => (
+                                        <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>
+                                    ),
+                                    ol: ({ children }) => (
+                                        <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>
+                                    ),
+                                    h1: ({ children }) => (
+                                        <h1 className="text-base font-bold mb-3 mt-1" style={{ color: 'var(--accent)' }}>{children}</h1>
+                                    ),
+                                    h2: ({ children }) => (
+                                        <h2 className="text-sm font-bold mb-2 mt-3" style={{ color: 'var(--accent)' }}>{children}</h2>
+                                    ),
+                                    h3: ({ children }) => (
+                                        <h3 className="text-sm font-semibold mb-2 mt-2" style={{ color: 'var(--text-primary)' }}>{children}</h3>
+                                    ),
+                                    strong: ({ children }) => (
+                                        <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>{children}</strong>
+                                    ),
+                                    em: ({ children }) => (
+                                        <em className="italic" style={{ color: 'var(--text-muted)' }}>{children}</em>
+                                    ),
+                                    blockquote: ({ children }) => (
+                                        <blockquote className="md-blockquote">{children}</blockquote>
+                                    ),
+                                    hr: () => (
+                                        <hr className="md-hr" />
+                                    ),
+                                    code: ({ className, children, ...props }: { className?: string; children?: React.ReactNode }) => {
+                                        const codeText = String(children).replace(/\n$/, '');
+                                        const isBlock = codeText.includes('\n') || Boolean(className);
+                                        if (!isBlock) {
+                                            return (
+                                                <code className="md-inline-code" {...props}>{codeText}</code>
+                                            );
+                                        }
                                         return (
-                                            <p>
-                                                {processChildren(children, onLawClick)}
-                                            </p>
+                                            <div className="md-code-block">
+                                                <div className="md-code-header">
+                                                    <span className="md-code-lang">{className?.replace('language-', '') || 'code'}</span>
+                                                    <CopyButton text={codeText} className="md-code-copy" label="Copy" />
+                                                </div>
+                                                <pre className="md-code-pre"><code>{codeText}</code></pre>
+                                            </div>
                                         );
                                     },
-                                    li: ({ children }) => {
-                                        return (
-                                            <li>
-                                                {processChildren(children, onLawClick)}
-                                            </li>
-                                        );
-                                    },
+                                    table: ({ children }) => (
+                                        <div className="md-table-wrapper">
+                                            <table className="md-table">{children}</table>
+                                        </div>
+                                    ),
+                                    thead: ({ children }) => (
+                                        <thead className="md-thead">{children}</thead>
+                                    ),
+                                    tbody: ({ children }) => (
+                                        <tbody>{children}</tbody>
+                                    ),
+                                    tr: ({ children }) => (
+                                        <tr className="md-tr">{children}</tr>
+                                    ),
+                                    th: ({ children }) => (
+                                        <th className="md-th">
+                                            {processChildren(children, onLawClick)}
+                                        </th>
+                                    ),
+                                    td: ({ children }) => (
+                                        <td className="md-td">
+                                            {processChildren(children, onLawClick)}
+                                        </td>
+                                    ),
                                 }}
                             >{msg.content}</ReactMarkdown>
                             {msg.streaming && !msg.currentProcess && (
                                 <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: "var(--accent)" }} />
+                            )}
+                                </>
                             )}
                         </div>
                         {msg.streaming && msg.currentProcess && (
@@ -389,7 +466,11 @@ function AiMessage({
 
                 {/* Sources */}
                 {!msg.streaming && msg.sources && msg.sources.length > 0 && (() => {
-                    const kgSources = msg.sources!.filter(s => s.type === 'knowledge_graph' && s.id);
+                    const kgSources = msg.sources!.filter(s => 
+                        s.type === 'knowledge_graph' && 
+                        s.id && 
+                        /^d\d+(_|$)/.test(s.id)
+                    );
                     const EXCLUDED_EXTS = /\.(pdf|docx?|xlsx?|pptx?|zip|rar)(\?.*)?$/i;
                     const webSources = msg.sources!.filter(s => s.type === 'web' && s.url && !EXCLUDED_EXTS.test(s.url));
                     return (
@@ -523,12 +604,16 @@ function ChatPageInner() {
     const chatStreamRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const abortRef = useRef<AbortController | null>(null);
+    const autoScrollRef = useRef(true);
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [conversationId, setConversationId] = useState<string | undefined>(undefined);
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMoreHistory, setHasMoreHistory] = useState(false);
     const [lawPanelNodeId, setLawPanelNodeId] = useState<string | null>(null);
     const [isOverflowing, setIsOverflowing] = useState(false);
     const [dislikeModalMessageId, setDislikeModalMessageId] = useState<string | null>(null);
@@ -578,6 +663,7 @@ function ChatPageInner() {
         // Bỏ qua nếu không có sự thực sự thay đổi
         if (urlConvId === conversationId) return;
 
+        autoScrollRef.current = true;
         setConversationId(urlConvId);
 
         if (urlConvId) {
@@ -588,7 +674,7 @@ function ChatPageInner() {
             if (isStreamingRef.current) return;
 
             setIsLoadingHistory(true);
-            messageService.getMessagesByConversation(urlConvId, 1, 50)
+            messageService.getMessagesByConversation(urlConvId, 1, 15)
                 .then(res => {
                     const list = res.result || res.data || [];
                     // Tin nhắn trả về từ mới nhất -> cũ nhất, cần đảo lại
@@ -600,6 +686,8 @@ function ChatPageInner() {
                         sources: m.metadata?.sources || undefined,
                     })).reverse();
                     setMessages(history);
+                    setHasMoreHistory(list.length === 15);
+                    setPage(1);
                 })
                 .catch(err => console.error("Failed to load generic messages", err))
                 .finally(() => setIsLoadingHistory(false));
@@ -608,16 +696,60 @@ function ChatPageInner() {
             // New chat
             if (!isStreamingRef.current) {
                 setMessages([]);
+                setHasMoreHistory(false);
+                setPage(1);
             }
         }
     }, [searchParams, setActiveId, conversationId]);
 
-    // Auto-scroll khi messages thay đổi
+    // Logic auto-scroll linh hoạt: chỉ cuộn xuống nếu được cho phép (bật khi mở chat, gửi/nhận tin nhắn)
     useEffect(() => {
-        if (chatStreamRef.current) {
+        if (chatStreamRef.current && autoScrollRef.current) {
             chatStreamRef.current.scrollTop = chatStreamRef.current.scrollHeight;
         }
     }, [messages]);
+
+    const handleLoadMore = useCallback(async () => {
+        if (!conversationId || isLoadingMore || isStreaming) return;
+        setIsLoadingMore(true);
+        autoScrollRef.current = false;
+        const nextPage = page + 1;
+        
+        // Lưu lại chiều cao của scroll container trước khi render thêm tin nhắn mới (phía trên)
+        const currentScrollHeight = chatStreamRef.current?.scrollHeight || 0;
+
+        try {
+            const res = await messageService.getMessagesByConversation(conversationId, nextPage, 15);
+            const list = res.result || res.data || [];
+            if (list.length > 0) {
+                const history: Message[] = list.map(m => ({
+                    id: m.id,
+                    role: (m.sender === "bot" ? "assistant" : "user") as "user" | "assistant",
+                    content: m.content,
+                    thinking: m.thought || undefined,
+                    sources: m.metadata?.sources || undefined,
+                })).reverse();
+
+                setMessages(prev => [...history, ...prev]);
+                setPage(nextPage);
+                setHasMoreHistory(list.length === 15);
+
+                // Sau khi render xong, phục hồi lại vị trí scroll (tránh bị nhảy lên tuốt lên trên)
+                requestAnimationFrame(() => {
+                    if (chatStreamRef.current) {
+                        const newScrollHeight = chatStreamRef.current.scrollHeight;
+                        chatStreamRef.current.scrollTop += (newScrollHeight - currentScrollHeight);
+                    }
+                });
+            } else {
+                setHasMoreHistory(false);
+            }
+        } catch (err) {
+            console.error("Failed to load older messages", err);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [conversationId, page, isLoadingMore, isStreaming]);
 
     // Redirect nếu chưa đăng nhập (chỉ sau khi Zustand đã rehydrate)
     useEffect(() => {
@@ -638,6 +770,7 @@ function ChatPageInner() {
 
         const isNewChat = !conversationId;
 
+        autoScrollRef.current = true;
         setInput("");
         setIsStreaming(true);
 
@@ -766,6 +899,7 @@ function ChatPageInner() {
     const handleRegenerate = useCallback(async (messageId: string) => {
         if (isStreaming) return;
         setIsStreaming(true);
+        autoScrollRef.current = true;
 
         // Tìm index message AI
         setMessages((prev) => {
@@ -895,7 +1029,24 @@ function ChatPageInner() {
                         <span className="text-gray-500 animate-pulse text-sm tracking-widest uppercase">Đang tải lịch sử...</span>
                     </div>
                 ) : (
-                    messages.map((msg) =>
+                    <>
+                        {hasMoreHistory && !isStreaming && (
+                            <div className="flex justify-center py-2 mb-4">
+                                <button
+                                    onClick={handleLoadMore}
+                                    disabled={isLoadingMore}
+                                    className="px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-colors disabled:opacity-50"
+                                    style={{
+                                        backgroundColor: 'var(--bg-hover)',
+                                        color: 'var(--text-muted)',
+                                        border: '1px solid var(--border-subtle)'
+                                    }}
+                                >
+                                    {isLoadingMore ? "Đang tải..." : "Tải thêm tin nhắn cũ"}
+                                </button>
+                            </div>
+                        )}
+                        {messages.map((msg) =>
                         msg.role === "user" ? (
                             // User bubble
                             <div key={msg.id} className="flex flex-col items-end group w-full">
@@ -929,7 +1080,8 @@ function ChatPageInner() {
                                 onDislike={handleDislike}
                             />
                         )
-                    )
+                        )}
+                    </>
                 )}
             </section>
 
