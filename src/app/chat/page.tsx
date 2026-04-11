@@ -14,6 +14,7 @@ import LawDetailPanel from "@/components/chat/LawDetailPanel";
 import { refTextToNodeId } from "@/lib/lawService";
 import { feedbackService } from "@/lib/feedbackService";
 import FeedbackModal from "@/components/chat/FeedbackModal";
+import { ChatInput } from "@/components/chat/ChatInput";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MessageStep {
@@ -445,7 +446,7 @@ function AiMessage({
                     </div>
                 ) : msg.streaming ? (
                     // Placeholder khi chưa có answer
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 min-w-[250px]">
                         <div className="flex gap-1 items-center h-4">
                             <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
                             <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
@@ -594,6 +595,54 @@ function AiMessage({
     );
 }
 
+const UserMessage = React.memo(({ msg }: { msg: Message }) => {
+    return (
+        <div className="flex flex-col items-end group w-full">
+            <div className="flex items-center justify-end gap-2 w-full">
+                <CopyButton
+                    text={msg.content}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded shrink-0"
+                />
+                <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] text-sm leading-relaxed break-words whitespace-pre-wrap"
+                    style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        border: '1px solid var(--accent-border)',
+                        color: 'var(--text-primary)',
+                        boxShadow: 'var(--shadow-bubble)'
+                    }}
+                >
+                    {msg.content}
+                </div>
+            </div>
+            <span className="text-xs mt-1 uppercase tracking-widest mr-1" style={{ color: 'var(--text-muted)' }}>Bạn</span>
+        </div>
+    );
+});
+
+const MemoizedAiMessage = React.memo((props: {
+    msg: Message;
+    isLatest?: boolean;
+    onRegenerate?: (id: string) => void;
+    onLawClick?: (nodeId: string) => void;
+    onLike?: (id: string) => void;
+    onDislike?: (id: string) => void;
+}) => {
+    return (
+        <div className="w-full flex-col flex items-start">
+            <AiMessage {...props} />
+        </div>
+    );
+}, (prevProps, nextProps) => {
+    return (
+        prevProps.msg === nextProps.msg &&
+        prevProps.isLatest === nextProps.isLatest &&
+        prevProps.onRegenerate === nextProps.onRegenerate &&
+        prevProps.onLawClick === nextProps.onLawClick &&
+        prevProps.onLike === nextProps.onLike &&
+        prevProps.onDislike === nextProps.onDislike
+    );
+});
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 function ChatPageInner() {
     const router = useRouter();
@@ -602,12 +651,10 @@ function ChatPageInner() {
     const hasHydrated = useAuthHasHydrated();
     const { setActiveId, addConversation } = useConversationStore();
     const chatStreamRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLTextAreaElement>(null);
     const abortRef = useRef<AbortController | null>(null);
     const autoScrollRef = useRef(true);
 
     const [messages, setMessages] = useState<Message[]>([]);
-    const [input, setInput] = useState("");
     const [conversationId, setConversationId] = useState<string | undefined>(undefined);
     const [isStreaming, setIsStreaming] = useState(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -615,7 +662,6 @@ function ChatPageInner() {
     const [page, setPage] = useState(1);
     const [hasMoreHistory, setHasMoreHistory] = useState(false);
     const [lawPanelNodeId, setLawPanelNodeId] = useState<string | null>(null);
-    const [isOverflowing, setIsOverflowing] = useState(false);
     const [dislikeModalMessageId, setDislikeModalMessageId] = useState<string | null>(null);
 
     const handleLike = useCallback(async (messageId: string) => {
@@ -641,18 +687,15 @@ function ChatPageInner() {
         }
     }, [dislikeModalMessageId]);
 
-    // Auto-resize textarea based on content
-    useEffect(() => {
-        if (inputRef.current) {
-            inputRef.current.style.height = "auto";
-            const currentScrollHeight = inputRef.current.scrollHeight;
-            inputRef.current.style.height = `${currentScrollHeight}px`;
-            // Cập nhật state nếu scrollHeight vượt quá maxHeight của CSS
-            setIsOverflowing(currentScrollHeight >= 240);
-        }
-    }, [input]);
-
     const isStreamingRef = useRef(false);
+
+    const handleScroll = useCallback(() => {
+        if (!chatStreamRef.current) return;
+        const { scrollTop, scrollHeight, clientHeight } = chatStreamRef.current;
+        // Check if user is near the bottom (e.g. within 50px)
+        const isBottom = scrollHeight - scrollTop - clientHeight < 50;
+        autoScrollRef.current = isBottom;
+    }, []);
     useEffect(() => {
         isStreamingRef.current = isStreaming;
     }, [isStreaming]);
@@ -706,11 +749,16 @@ function ChatPageInner() {
     useEffect(() => {
         if (chatStreamRef.current && autoScrollRef.current) {
             chatStreamRef.current.scrollTop = chatStreamRef.current.scrollHeight;
+            setTimeout(() => {
+                if (chatStreamRef.current && autoScrollRef.current) {
+                    chatStreamRef.current.scrollTop = chatStreamRef.current.scrollHeight;
+                }
+            }, 50);
         }
     }, [messages]);
 
     const handleLoadMore = useCallback(async () => {
-        if (!conversationId || isLoadingMore || isStreaming) return;
+        if (!conversationId || isLoadingMore || isStreamingRef.current) return;
         setIsLoadingMore(true);
         autoScrollRef.current = false;
         const nextPage = page + 1;
@@ -749,7 +797,7 @@ function ChatPageInner() {
         } finally {
             setIsLoadingMore(false);
         }
-    }, [conversationId, page, isLoadingMore, isStreaming]);
+    }, [conversationId, page, isLoadingMore]);
 
     // Redirect nếu chưa đăng nhập (chỉ sau khi Zustand đã rehydrate)
     useEffect(() => {
@@ -766,12 +814,11 @@ function ChatPageInner() {
     }, []);
 
     const handleSend = useCallback(async (question: string) => {
-        if (!question.trim() || isStreaming) return;
+        if (!question.trim() || isStreamingRef.current) return;
 
         const isNewChat = !conversationId;
 
         autoScrollRef.current = true;
-        setInput("");
         setIsStreaming(true);
 
         // Tạo AbortController mới cho request này
@@ -894,10 +941,10 @@ function ChatPageInner() {
                 }, 5000);
             }
         }
-    }, [isStreaming, conversationId, updateLastMessage, addConversation, setActiveId]);
+    }, [conversationId, updateLastMessage, addConversation, setActiveId]);
 
     const handleRegenerate = useCallback(async (messageId: string) => {
-        if (isStreaming) return;
+        if (isStreamingRef.current) return;
         setIsStreaming(true);
         autoScrollRef.current = true;
 
@@ -988,18 +1035,11 @@ function ChatPageInner() {
             setIsStreaming(false);
             abortRef.current = null;
         }
-    }, [isStreaming]);
+    }, []);
 
     const handleCancel = useCallback(() => {
         abortRef.current?.abort();
     }, []);
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSend(input);
-        }
-    };
 
     const showHero = messages.length === 0;
 
@@ -1022,6 +1062,7 @@ function ChatPageInner() {
             {/* Chat Stream */}
             <section
                 ref={chatStreamRef}
+                onScroll={handleScroll}
                 className="chat-stream flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-48"
             >
                 {isLoadingHistory ? (
@@ -1048,29 +1089,9 @@ function ChatPageInner() {
                         )}
                         {messages.map((msg) =>
                         msg.role === "user" ? (
-                            // User bubble
-                            <div key={msg.id} className="flex flex-col items-end group w-full">
-                                <div className="flex items-center justify-end gap-2 w-full">
-                                    <CopyButton
-                                        text={msg.content}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded shrink-0"
-                                    />
-                                    <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] text-sm leading-relaxed break-words whitespace-pre-wrap"
-                                        style={{
-                                            backgroundColor: 'var(--accent-soft)',
-                                            border: '1px solid var(--accent-border)',
-                                            color: 'var(--text-primary)',
-                                            boxShadow: 'var(--shadow-bubble)'
-                                        }}
-                                    >
-                                        {msg.content}
-                                    </div>
-                                </div>
-                                <span className="text-xs mt-1 uppercase tracking-widest mr-1" style={{ color: 'var(--text-muted)' }}>Bạn</span>
-                            </div>
+                            <UserMessage key={msg.id} msg={msg} />
                         ) : (
-                            // AI bubble
-                            <AiMessage
+                            <MemoizedAiMessage
                                 key={msg.id}
                                 msg={msg}
                                 isLatest={messages.length > 0 && messages[messages.length - 1].id === msg.id}
@@ -1086,54 +1107,11 @@ function ChatPageInner() {
             </section>
 
             {/* Input Area */}
-            <div className="p-4 md:p-6 shrink-0 w-full absolute bottom-0 left-0 pb-2 md:pb-6"
-                style={{ backgroundColor: 'var(--bg-main)' }}
-            >
-                <div className="max-w-4xl mx-auto relative group">
-                    <textarea
-                        ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        rows={1}
-                        disabled={isStreaming}
-                        className={`w-full text-[15px] py-3 pl-4 pr-12 md:py-4 md:pl-5 md:pr-14 focus:outline-none focus:ring-0 rounded-xl transition-colors resize-none disabled:opacity-50 leading-relaxed chat-input-scroll placeholder:text-[var(--text-secondary)] placeholder:opacity-100 focus:placeholder:opacity-60 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
-                        placeholder="Hỏi LexMind..."
-                        style={{
-                            minHeight: 48, maxHeight: 240,
-                            backgroundColor: 'var(--bg-input)',
-                            border: '1px solid var(--border-primary)',
-                            color: 'var(--text-primary)',
-                        }}
-                    />
-                    <button
-                        onClick={isStreaming ? handleCancel : () => handleSend(input)}
-                        disabled={!isStreaming && !input.trim()}
-                        className={`absolute right-3 bottom-2.5 md:bottom-3 p-2 transition-all rounded ${isStreaming
-                                ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                : "disabled:opacity-30 disabled:cursor-not-allowed"
-                            }`}
-                        style={{ color: isStreaming ? undefined : 'var(--text-muted)' }}
-                        type="button"
-                        title={isStreaming ? "Hủy đánh máy (Escape)" : "Gửi (Enter)"}
-                    >
-                        {isStreaming ? (
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                <rect x="5" y="5" width="14" height="14" rx="2" />
-                            </svg>
-                        ) : (
-                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
-                            </svg>
-                        )}
-                    </button>
-                </div>
-                <div className="text-center mt-2 md:mt-3">
-                    <p className="text-[9px] md:text-[10px] uppercase tracking-tighter" style={{ color: 'var(--text-faint)' }}>
-                        LexMind có thể mắc sai sót
-                    </p>
-                </div>
-            </div>
+            <ChatInput 
+                onSend={handleSend}
+                onCancel={handleCancel}
+                isStreaming={isStreaming}
+            />
 
             {/* Law Detail Panel */}
             <LawDetailPanel
