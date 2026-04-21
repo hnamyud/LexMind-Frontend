@@ -64,12 +64,28 @@ export function refTextToNodeId(text: string): string | null {
     if (!dieu) return null;
 
     // Nếu chỉ có Điều → dieu_X
-    if (!khoan && !diem) return `dieu_${dieu}`;
+    let structure = "";
+    if (!khoan && !diem) {
+        structure = `dieu_${dieu}`;
+    } else {
+        structure = `d${dieu}`;
+        if (khoan) structure += `_k${khoan}`;
+        if (diem) structure += `_${diem}`;
+    }
 
-    // Có khoản
-    let id = `d${dieu}`;
-    if (khoan) id += `_k${khoan}`;
-    if (diem) id += `_${diem}`;
+    let docRef: string | null = null;
+    const lowerClean = clean.toLowerCase();
+    if (lowerClean.includes("168/2024/nđ-cp") || lowerClean.includes("nghị định 168")) {
+        docRef = "nd168_2024";
+    } else if (lowerClean.includes("trật tự, an toàn") || lowerClean.includes("luật trật tự")) {
+        docRef = "l36_2024";
+    } else if (lowerClean.includes("35/2024/qh15") || lowerClean.includes("luật số 35") || lowerClean.includes("luật đường bộ")) {
+        docRef = "l35_2024";
+    }
 
-    return id;
+    if (docRef) {
+        return `${docRef}_${structure}`;
+    }
+
+    return structure;
 }

@@ -68,11 +68,14 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
                             </svg>
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight truncate">
+                            <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight overflow-hidden text-ellipsis whitespace-nowrap" title="Tra cứu điều luật">
                                 Tra cứu điều luật
                             </h2>
                             {nodeId && (
-                                <p className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-wider truncate">
+                                <p
+                                    className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-wider overflow-hidden text-ellipsis whitespace-nowrap"
+                                    title={nodeId}
+                                >
                                     {nodeId}
                                 </p>
                             )}

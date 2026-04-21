@@ -8,6 +8,7 @@ import { chatService, StreamChunk, StepChunk } from "@/lib/chatService";
 import { messageService } from "@/lib/messageService";
 import { useAuthStore } from "@/store/authStore";
 import { useAuthHasHydrated } from "@/store/authStore";
+
 import { useConversationStore } from "@/store/conversationStore";
 import { useRouter } from "next/navigation";
 import LawDetailPanel from "@/components/chat/LawDetailPanel";
@@ -17,6 +18,8 @@ import FeedbackModal from "@/components/chat/FeedbackModal";
 import { ChatInput } from "@/components/chat/ChatInput";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+type StreamStage = "IDLE" | "ANALYZING" | "RETRIEVING" | "ANSWERING" | "DONE";
+
 interface MessageStep {
     step: number;
     node: string;
@@ -28,19 +31,59 @@ interface Source {
     id?: string;
     score?: number;
     url?: string;
+    doc_ref?: string;
+    source_title?: string;
+    path?: string;
 }
 
 interface Message {
     id: string;
     role: "user" | "assistant";
-    content: string;           // nội dung chính (answer)
-    thinking?: string;         // nội dung thinking (ẩn/hiện)
-    steps?: MessageStep[];     // các bước đang xử lý
-    processes?: string[];      // lịch sử các thông báo process
-    currentProcess?: string;   // nội dung quá trình LLM đang xử lý (type: process)
+    content: string;
+    thinking?: string;
+    steps?: MessageStep[];
     sources?: Source[];
-    streaming?: boolean;       // đang stream
+    streaming?: boolean;
     error?: string;
+    // ── Stage machine fields ──
+    streamStage?: StreamStage;
+    processLogs?: { id: string, text: string, group: number, stage?: string }[];
+    queryMode?: string;
+}
+
+// ─── Stage grouping ────────────────────────────────────────────────────────────
+const GROUP1_STAGES = new Set(["route", "rewrite", "cache"]);
+const GROUP2_STAGES = new Set(["retrieval", "reflect"]);
+
+function getStageGroup(stage?: string): 1 | 2 | 3 | null {
+    if (!stage) return null;
+    if (GROUP1_STAGES.has(stage)) return 1;
+    if (GROUP2_STAGES.has(stage)) return 2;
+    if (stage === "generate") return 3;
+    return null;
+}
+
+// ─── Source ID parser ─────────────────────────────────────────────────────────
+function parseSourceId(id: string): string | null {
+    // format mới: có thể có tiền tố (vd: nd168_2024_d7_k7_c hoặc l35_2024_dieu_13)
+    const match = id.match(/^(?:([a-z0-9_]+?)_)?(?:dieu_|d)(\d+)(?:_k(\d+))?(?:_([a-z\u00f0-\u00ff]+))?$/);
+    if (!match) return null;
+    const [, docRefRaw, dieu, khoan, diem] = match;
+    let result = `Điều ${dieu}`;
+    if (khoan) result += `, Khoản ${khoan}`;
+    if (diem) result += `, Điểm ${diem}`;
+
+    if (docRefRaw) {
+        if (docRefRaw === "nd168_2024") result += " (NĐ 168/2024)";
+        else if (docRefRaw === "l35_2024") result += " (Luật ĐB 2024)";
+        else if (docRefRaw === "l36_2024") result += " (Luật TTATGT 2024)";
+    }
+    return result;
+}
+
+// ─── Strip leading emoji from process text ────────────────────────────────────
+function stripEmoji(text: string): string {
+    return text.replace(/^[^\w\sđĐ]+\s*/, '');
 }
 
 // ─── Regex to detect law references like [Điều 23, Khoản 1, ...] ─────────────
@@ -229,40 +272,62 @@ function ThinkingBlock({
     );
 }
 
-/** Hiển thị chữ process mượt mà qua mảng để không bị mất text nào khi SSE bắn quá nhanh */
-function AnimatedProcessText({ texts }: { texts: string[] }) {
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-        // Reset index nếu mảng bị clear (như lúc regenerate)
-        if (texts.length === 0 && currentIndex !== 0) {
-            setCurrentIndex(0);
-        }
-    }, [texts.length, currentIndex]);
-
-    useEffect(() => {
-        let isCurrent = true;
-        const autoAdvance = async () => {
-            if (texts && currentIndex < texts.length - 1) {
-                // Đợi 1000ms rồi hiển thị process tiếp theo
-                await new Promise(r => setTimeout(r, 800));
-                if (isCurrent) {
-                    setCurrentIndex(c => c + 1);
-                }
-            }
-        };
-        autoAdvance();
-        return () => { isCurrent = false; };
-    }, [currentIndex, texts.length]);
-
-    if (!texts || texts.length === 0) return null;
-
-    // Đảm bảo index hợp lệ
-    const validIndex = Math.min(currentIndex, texts.length - 1);
-    return <>{texts[validIndex]}</>;
+function StatusRow({ text, active }: { text: string; active: boolean }) {
+    return (
+        <div className={`flex items-center gap-2 transition-all duration-300 ${active ? 'opacity-100' : 'opacity-60'}`}>
+            {active ? (
+                <span className="flex gap-0.5 items-center shrink-0">
+                    <span className="w-1 h-1 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: 'var(--accent)' }} />
+                    <span className="w-1 h-1 rounded-full animate-bounce [animation-delay:120ms]" style={{ backgroundColor: 'var(--accent)' }} />
+                    <span className="w-1 h-1 rounded-full animate-bounce [animation-delay:240ms]" style={{ backgroundColor: 'var(--accent)' }} />
+                </span>
+            ) : (
+                <svg className="w-3 h-3 shrink-0" style={{ color: 'var(--accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+            )}
+            <span
+                className="text-[12px] font-mono leading-relaxed break-words"
+                style={{
+                    color: active ? 'var(--accent)' : 'var(--text-faint)',
+                }}
+            >
+                {text}
+            </span>
+        </div>
+    );
 }
 
-/** Bubble tin nhắn AI */
+function ProcessRowPlayer({ logs, group, activeStage, delayMs = 800 }: { logs: NonNullable<Message['processLogs']>, group: number, activeStage: string, delayMs?: number }) {
+    const groupLogs = useMemo(() => logs.filter(l => l.group === group), [logs, group]);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    const isDone = (group === 1 && (activeStage === 'RETRIEVING' || activeStage === 'ANSWERING' || activeStage === 'DONE')) ||
+        (group === 2 && (activeStage === 'ANSWERING' || activeStage === 'DONE'));
+
+    useEffect(() => {
+        if (groupLogs.length === 0) return;
+        if (isDone) {
+            setCurrentIndex(groupLogs.length - 1);
+            return;
+        }
+
+        if (currentIndex < groupLogs.length - 1) {
+            const timer = setTimeout(() => {
+                setCurrentIndex(prev => prev + 1);
+            }, delayMs);
+            return () => clearTimeout(timer);
+        }
+    }, [groupLogs.length, currentIndex, delayMs, isDone]);
+
+    if (groupLogs.length === 0) return null;
+
+    const currentLog = groupLogs[currentIndex];
+
+    return <StatusRow text={currentLog.text} active={!isDone} />;
+}
+
+/** Bubble tin nhắn AI – state machine: ANALYZING → RETRIEVING → ANSWERING → DONE */
 function AiMessage({
     msg,
     isLatest,
@@ -278,74 +343,64 @@ function AiMessage({
     onLike?: (id: string) => void;
     onDislike?: (id: string) => void;
 }) {
-    const lastStep = msg.steps?.[msg.steps.length - 1];
     const [localFeedback, setLocalFeedback] = useState<'like' | 'dislike' | null>(null);
     const [canRegenerate, setCanRegenerate] = useState(true);
 
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
+        let id: NodeJS.Timeout;
         if (isLatest && !msg.streaming) {
-            timeoutId = setTimeout(() => {
-                setCanRegenerate(false);
-            }, 60000);
+            id = setTimeout(() => setCanRegenerate(false), 60000);
         }
-        return () => {
-            if (timeoutId) clearTimeout(timeoutId);
-        };
+        return () => { if (id) clearTimeout(id); };
     }, [isLatest, msg.streaming]);
 
+    const stage = msg.streamStage ?? 'IDLE';
+    const isAnswering = stage === 'ANSWERING' || stage === 'DONE' || !!msg.content;
+    const isDone = !msg.streaming;
+
+    // ── Source chips ──────────────────────────────────────────────────────────
+    const EXCLUDED_EXTS = /\.(pdf|docx?|xlsx?|pptx?|zip|rar)(\?.*)?$/i;
+    const kgSources = (msg.sources ?? []).filter(s => {
+        if (s.type !== 'knowledge_graph' || !s.id) return false;
+        return parseSourceId(s.id) !== null;
+    });
+    const webSources = (msg.sources ?? []).filter(s => s.type === 'web' && s.url && !EXCLUDED_EXTS.test(s.url));
+
     return (
-        <div className="flex flex-col items-start">
-            <div className="px-5 py-4 rounded-2xl rounded-tl-sm max-w-[90%] text-sm leading-relaxed break-words"
-                style={{
-                    backgroundColor: "var(--bg-bubble-ai)",
-                    border: "1px solid var(--border-primary)",
-                    color: "var(--text-secondary)",
-                    boxShadow: "var(--shadow-bubble)",
-                    borderLeft: "3px solid var(--accent)"
-                }}
-            >
-                {/* Steps đang xử lý */}
-                {msg.streaming && msg.steps && msg.steps.length > 0 && !msg.content && (
-                    <div className="mb-2 space-y-1">
-                        {msg.steps.map((s, idx) => (
-                            <div key={`step-${s.step}-${idx}`} className="flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)", opacity: 0.6 }} />
-                                <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{s.label}</span>
-                            </div>
-                        ))}
-                    </div>
-                )}
+        <div className="flex flex-col items-start gap-2">
 
-                {/* Last step khi đang stream answer */}
-                {msg.streaming && msg.content && lastStep && (
-                    <div className="flex items-center gap-1.5 mb-2">
-                        <span className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)", opacity: 0.6 }} />
-                        <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{lastStep.label}</span>
-                    </div>
-                )}
+            {/* ── Status rows (above bubble) ─────────────────────────────── */}
+            {(msg.processLogs && msg.processLogs.length > 0) && (
+                <div className="flex flex-col gap-1.5 px-1">
+                    <ProcessRowPlayer logs={msg.processLogs} group={1} activeStage={stage} />
+                    <ProcessRowPlayer logs={msg.processLogs} group={2} activeStage={stage} />
+                </div>
+            )}
 
-                {/* Thinking block */}
-                {msg.thinking && (
-                    <ThinkingBlock content={msg.thinking} streaming={msg.streaming && !msg.content} />
-                )}
 
-                {/* Answer content */}
-                {msg.content ? (
-                    <div>
+            {/* ── Answer bubble ─────────────────────────────────────────── */}
+            {(isAnswering || msg.error) && (
+                <div
+                    className="px-5 py-4 rounded-2xl rounded-tl-sm w-fit max-w-[90%] text-sm leading-relaxed break-words"
+                    style={{
+                        backgroundColor: 'var(--bg-bubble-ai)',
+                        border: '1px solid var(--border-primary)',
+                        color: 'var(--text-secondary)',
+                        boxShadow: 'var(--shadow-bubble)',
+                        borderLeft: '3px solid var(--accent)',
+                    }}
+                >
+                    {/* Thinking block */}
+                    {msg.thinking && (
+                        <ThinkingBlock content={msg.thinking} streaming={msg.streaming && !msg.content} />
+                    )}
+
+                    {/* Markdown content */}
+                    {msg.content && (
                         <div className="markdown-body" style={{ color: 'var(--text-secondary)' }}>
-                            {msg.streaming && msg.content.includes('|') ? (
-                                <div className="whitespace-pre-wrap leading-relaxed break-words text-[13.5px]">
-                                    <LawRefText text={msg.content} onLawClick={onLawClick} />
-                                    {!msg.currentProcess && (
-                                        <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: "var(--accent)" }} />
-                                    )}
-                                </div>
-                            ) : (
-                                <>
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        components={{
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
                                     p: ({ children }) => (
                                         <p className="mb-3 last:mb-0 leading-relaxed">
                                             {processChildren(children, onLawClick)}
@@ -356,41 +411,19 @@ function AiMessage({
                                             {processChildren(children, onLawClick)}
                                         </li>
                                     ),
-                                    ul: ({ children }) => (
-                                        <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>
-                                    ),
-                                    ol: ({ children }) => (
-                                        <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>
-                                    ),
-                                    h1: ({ children }) => (
-                                        <h1 className="text-base font-bold mb-3 mt-1" style={{ color: 'var(--accent)' }}>{children}</h1>
-                                    ),
-                                    h2: ({ children }) => (
-                                        <h2 className="text-sm font-bold mb-2 mt-3" style={{ color: 'var(--accent)' }}>{children}</h2>
-                                    ),
-                                    h3: ({ children }) => (
-                                        <h3 className="text-sm font-semibold mb-2 mt-2" style={{ color: 'var(--text-primary)' }}>{children}</h3>
-                                    ),
-                                    strong: ({ children }) => (
-                                        <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>{children}</strong>
-                                    ),
-                                    em: ({ children }) => (
-                                        <em className="italic" style={{ color: 'var(--text-muted)' }}>{children}</em>
-                                    ),
-                                    blockquote: ({ children }) => (
-                                        <blockquote className="md-blockquote">{children}</blockquote>
-                                    ),
-                                    hr: () => (
-                                        <hr className="md-hr" />
-                                    ),
+                                    ul: ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1">{children}</ul>,
+                                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1">{children}</ol>,
+                                    h1: ({ children }) => <h1 className="text-base font-bold mb-3 mt-1" style={{ color: 'var(--accent)' }}>{children}</h1>,
+                                    h2: ({ children }) => <h2 className="text-sm font-bold mb-2 mt-3" style={{ color: 'var(--accent)' }}>{children}</h2>,
+                                    h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 mt-2" style={{ color: 'var(--text-primary)' }}>{children}</h3>,
+                                    strong: ({ children }) => <strong className="font-semibold" style={{ color: 'var(--text-primary)' }}>{children}</strong>,
+                                    em: ({ children }) => <em className="italic" style={{ color: 'var(--text-muted)' }}>{children}</em>,
+                                    blockquote: ({ children }) => <blockquote className="md-blockquote">{children}</blockquote>,
+                                    hr: () => <hr className="md-hr" />,
                                     code: ({ className, children, ...props }: { className?: string; children?: React.ReactNode }) => {
                                         const codeText = String(children).replace(/\n$/, '');
                                         const isBlock = codeText.includes('\n') || Boolean(className);
-                                        if (!isBlock) {
-                                            return (
-                                                <code className="md-inline-code" {...props}>{codeText}</code>
-                                            );
-                                        }
+                                        if (!isBlock) return <code className="md-inline-code" {...props}>{codeText}</code>;
                                         return (
                                             <div className="md-code-block">
                                                 <div className="md-code-header">
@@ -401,110 +434,63 @@ function AiMessage({
                                             </div>
                                         );
                                     },
-                                    table: ({ children }) => (
-                                        <div className="md-table-wrapper">
-                                            <table className="md-table">{children}</table>
-                                        </div>
-                                    ),
-                                    thead: ({ children }) => (
-                                        <thead className="md-thead">{children}</thead>
-                                    ),
-                                    tbody: ({ children }) => (
-                                        <tbody>{children}</tbody>
-                                    ),
-                                    tr: ({ children }) => (
-                                        <tr className="md-tr">{children}</tr>
-                                    ),
-                                    th: ({ children }) => (
-                                        <th className="md-th">
-                                            {processChildren(children, onLawClick)}
-                                        </th>
-                                    ),
-                                    td: ({ children }) => (
-                                        <td className="md-td">
-                                            {processChildren(children, onLawClick)}
-                                        </td>
-                                    ),
+                                    table: ({ children }) => <div className="md-table-wrapper"><table className="md-table">{children}</table></div>,
+                                    thead: ({ children }) => <thead className="md-thead">{children}</thead>,
+                                    tbody: ({ children }) => <tbody>{children}</tbody>,
+                                    tr: ({ children }) => <tr className="md-tr">{children}</tr>,
+                                    th: ({ children }) => <th className="md-th">{processChildren(children, onLawClick)}</th>,
+                                    td: ({ children }) => <td className="md-td">{processChildren(children, onLawClick)}</td>,
                                 }}
                             >{msg.content}</ReactMarkdown>
-                            {msg.streaming && !msg.currentProcess && (
-                                <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: "var(--accent)" }} />
-                            )}
-                                </>
+                            {/* Streaming cursor */}
+                            {msg.streaming && (
+                                <span className="inline-block w-1.5 h-4 ml-0.5 animate-pulse align-middle" style={{ backgroundColor: 'var(--accent)' }} />
                             )}
                         </div>
-                        {msg.streaming && msg.currentProcess && (
-                            <div className="flex items-center gap-2 mt-2 pt-2" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                                <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                                <span className="text-[11px] font-mono flex-1" style={{ color: "var(--accent)", opacity: 0.8 }}>
-                                    <AnimatedProcessText texts={msg.processes || []} />
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                ) : msg.streaming ? (
-                    // Placeholder khi chưa có answer
-                    <div className="flex flex-col gap-2 min-w-[250px]">
-                        <div className="flex gap-1 items-center h-4">
-                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                            <span className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ backgroundColor: "var(--accent)", opacity: 0.8 }} />
-                        </div>
-                        {msg.processes && msg.processes.length > 0 && (
-                            <span className="text-[11px] font-mono" style={{ color: "var(--accent)", opacity: 0.8 }}>
-                                <AnimatedProcessText texts={msg.processes} />
-                            </span>
-                        )}
-                    </div>
-                ) : null}
+                    )}
 
-                {/* Error */}
-                {msg.error && (
-                    <p className="text-xs text-red-400 mt-2">{msg.error}</p>
-                )}
+                    {/* Error */}
+                    {msg.error && <p className="text-xs text-red-400 mt-2">{msg.error}</p>}
 
-                {/* Sources */}
-                {!msg.streaming && msg.sources && msg.sources.length > 0 && (() => {
-                    const kgSources = msg.sources!.filter(s => 
-                        s.type === 'knowledge_graph' && 
-                        s.id && 
-                        /^d\d+(_|$)/.test(s.id)
-                    );
-                    const EXCLUDED_EXTS = /\.(pdf|docx?|xlsx?|pptx?|zip|rar)(\?.*)?$/i;
-                    const webSources = msg.sources!.filter(s => s.type === 'web' && s.url && !EXCLUDED_EXTS.test(s.url));
-                    return (
+                    {/* Sources */}
+                    {isDone && (kgSources.length > 0 || webSources.length > 0) && (
                         <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
-                            {/* Knowledge graph sources */}
                             {kgSources.length > 0 && (
                                 <>
                                     <p className="text-[10px] uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-faint)' }}>Nguồn tham chiếu</p>
                                     <div className="flex flex-wrap gap-1.5">
-                                        {kgSources.map((src, idx) => (
-                                            <button
-                                                key={`src-${src.id}-${idx}`}
-                                                type="button"
-                                                onClick={() => onLawClick?.(src.id!)}
-                                                className="px-2.5 py-1 text-[10px] rounded-full font-mono transition-all cursor-pointer"
-                                                style={{ border: '1px solid var(--accent-border)', color: 'var(--text-muted)', backgroundColor: 'var(--accent-soft)' }}
-                                                title={`Tra cứu: ${src.id}`}
-                                            >
-                                                {src.id}
-                                                {src.score != null && (
-                                                    <span className="ml-1 text-[var(--accent)] opacity-70 font-bold">
-                                                        {formatRRFScore(src.score)}%
-                                                    </span>
-                                                )}
-                                            </button>
-                                        ))}
+                                        {kgSources.map((src, idx) => {
+                                            const label = parseSourceId(src.id!) ?? src.id!;
+                                            return (
+                                                <button
+                                                    key={`src-${src.id}-${idx}`}
+                                                    type="button"
+                                                    onClick={() => onLawClick?.(src.id!)}
+                                                    className="px-2.5 py-1 text-[10px] rounded flex flex-col font-mono transition-all cursor-pointer hover:opacity-80 relative overflow-hidden"
+                                                    style={{ border: '1px solid var(--accent-border)', color: 'var(--text-muted)', backgroundColor: 'var(--accent-soft)' }}
+                                                    title={`Tra cứu: ${src.id}`}
+                                                >
+                                                    <div className="flex items-center gap-1.5 w-full">
+                                                        <span className="font-semibold text-[var(--accent)]">{src.path || label}</span>
+                                                        {src.score != null && (
+                                                            <span className="text-[var(--accent)] opacity-60 font-bold ml-auto text-[9px]">
+                                                                {formatRRFScore(src.score)}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {src.source_title && (
+                                                        <span className="text-[9px] opacity-70 mt-0.5 text-left truncate w-full max-w-[200px]" title={src.source_title}>
+                                                            {src.source_title}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </>
                             )}
-
-                            {/* Web reference sources */}
                             {webSources.length > 0 && (
-                                <div className={kgSources.length > 0 ? "mt-3" : ""}>
+                                <div className={kgSources.length > 0 ? 'mt-3' : ''}>
                                     <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
@@ -526,7 +512,7 @@ function AiMessage({
                                                     <svg className="w-3.5 h-3.5 shrink-0 text-gray-600 group-hover/link:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                     </svg>
-                                                    <span className="truncate font-mono">{hostname}</span>
+                                                    <span className="font-mono" title={src.url}>{hostname}</span>
                                                 </a>
                                             );
                                         })}
@@ -534,20 +520,23 @@ function AiMessage({
                                 </div>
                             )}
                         </div>
-                    );
-                })()}
-            </div>
+                    )}
+                </div>
+            )}
 
-            <div className="flex items-center gap-3 mt-1.5 ml-1">
+            {/* ── Label + action bar ─────────────────────────────────────── */}
+            <div className="flex items-center gap-3 ml-1 mt-1">
                 <span className="text-xs uppercase tracking-widest font-bold" style={{ color: 'var(--accent)' }}>LexMind</span>
-                {!msg.streaming && msg.content && (
+                {msg.queryMode && (
+                    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm border border-gray-700/50 bg-gray-800/30 text-gray-400">
+                        {msg.queryMode === 'penalty_lookup' ? 'Tra cứu xử phạt' : msg.queryMode === 'provision_lookup' ? 'Tra cứu quy định' : msg.queryMode}
+                    </span>
+                )}
+                {isDone && msg.content && (
                     <div className="flex items-center gap-2">
                         {onLike && (
                             <button
-                                onClick={() => {
-                                    setLocalFeedback('like');
-                                    onLike(msg.id);
-                                }}
+                                onClick={() => { setLocalFeedback('like'); onLike(msg.id); }}
                                 className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'like' ? 'text-brand' : 'text-gray-500 hover:text-gray-300'}`}
                                 title="Thích câu trả lời này"
                             >
@@ -558,10 +547,7 @@ function AiMessage({
                         )}
                         {onDislike && (
                             <button
-                                onClick={() => {
-                                    setLocalFeedback('dislike');
-                                    onDislike(msg.id);
-                                }}
+                                onClick={() => { setLocalFeedback('dislike'); onDislike(msg.id); }}
                                 className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'dislike' ? 'text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
                                 title="Không thích câu trả lời này"
                             >
@@ -582,8 +568,7 @@ function AiMessage({
                                 title="Tạo lại câu trả lời"
                             >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
                                 Tạo lại
                             </button>
@@ -757,12 +742,20 @@ function ChatPageInner() {
         }
     }, [messages]);
 
+    // Scroll xuống khi bubble answer xuất hiện lần đầu (ANSWERING stage mount)
+    const lastMsgStage = messages.length > 0 ? messages[messages.length - 1].streamStage : undefined;
+    useEffect(() => {
+        if (lastMsgStage === 'ANSWERING' && chatStreamRef.current && autoScrollRef.current) {
+            chatStreamRef.current.scrollTop = chatStreamRef.current.scrollHeight;
+        }
+    }, [lastMsgStage]);
+
     const handleLoadMore = useCallback(async () => {
         if (!conversationId || isLoadingMore || isStreamingRef.current) return;
         setIsLoadingMore(true);
         autoScrollRef.current = false;
         const nextPage = page + 1;
-        
+
         // Lưu lại chiều cao của scroll container trước khi render thêm tin nhắn mới (phía trên)
         const currentScrollHeight = chatStreamRef.current?.scrollHeight || 0;
 
@@ -838,9 +831,9 @@ function ChatPageInner() {
             role: "assistant",
             content: "",
             steps: [],
-            processes: [],
             thinking: "",
             streaming: true,
+            streamStage: "IDLE",
         };
 
         setMessages((prev) => [...prev, userMsg, aiMsg]);
@@ -871,17 +864,27 @@ function ChatPageInner() {
                             updateLastMessage((msg) => ({
                                 ...msg,
                                 content: msg.content + chunk.content,
-                                currentProcess: undefined // Ẩn process khi đang in answer nếu muốn, hoặc báo hiệu finish
+                                streamStage: "ANSWERING",
                             }));
                             break;
-                        case "process":
-                            const pText = (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý...";
-                            updateLastMessage((msg) => ({
-                                ...msg,
-                                processes: [...(msg.processes || []), pText],
-                                currentProcess: pText
-                            }));
+                        case "process": {
+                            const pc = chunk as any;
+                            const stage: string | undefined = pc.stage;
+                            const rawText = pc.message || pc.label || pc.content || pc.node || "Đang xử lý...";
+                            const text = stripEmoji(rawText);
+                            const group = getStageGroup(stage) || 3;
+                            updateLastMessage((msg) => {
+                                const newLogs = [...(msg.processLogs || []), { id: Date.now().toString() + Math.random(), text, group, stage }];
+                                let newStage = msg.streamStage;
+                                if (group === 1 && newStage !== "RETRIEVING" && newStage !== "ANSWERING" && newStage !== "DONE") {
+                                    newStage = "ANALYZING";
+                                } else if (group === 2 && newStage !== "ANSWERING" && newStage !== "DONE") {
+                                    newStage = "RETRIEVING";
+                                }
+                                return { ...msg, streamStage: newStage, processLogs: newLogs };
+                            });
                             break;
+                        }
                         case "info":
                             if ((chunk as any).conversationId && !conversationId) {
                                 router.replace(`/chat?conversationId=${(chunk as any).conversationId}`);
@@ -895,14 +898,34 @@ function ChatPageInner() {
                                 id: (chunk as any).messageId || msg.id
                             }));
                             break;
-                        case "metadata":
+                        case "metadata": {
+                            const rawSources = chunk.content?.sources || [];
+                            const xmlContext = chunk.content?.context || "";
+
+                            const enrichedSources = rawSources.map((s: Source) => {
+                                if (s.type === "knowledge_graph" && s.id) {
+                                    // Use simple matching to extract from xmlContext safely
+                                    const sourceBlockMatches = xmlContext.match(new RegExp(`<source[^>]*id="${s.id}"[^>]*>.*?<\\/source>`, 's'));
+                                    if (sourceBlockMatches) {
+                                        const innerXml = sourceBlockMatches[0];
+                                        const docRef = innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1] || "";
+                                        const sourceTitle = innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1] || "";
+                                        const path = innerXml.match(/<path>(.*?)<\/path>/s)?.[1] || "";
+                                        return { ...s, doc_ref: docRef, source_title: sourceTitle, path };
+                                    }
+                                }
+                                return s;
+                            });
+
                             updateLastMessage((msg) => ({
                                 ...msg,
-                                sources: chunk.content.sources,
+                                sources: enrichedSources,
+                                queryMode: chunk.content?.query_mode || msg.queryMode,
                             }));
                             break;
+                        }
                         case "done":
-                            updateLastMessage((msg) => ({ ...msg, streaming: false }));
+                            updateLastMessage((msg) => ({ ...msg, streaming: false, streamStage: "DONE" }));
                             break;
                     }
                 }
@@ -916,7 +939,7 @@ function ChatPageInner() {
                     content: msg.content
                         ? `${msg.content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*`
                         : "> *Thao tác bị hủy bỏ bởi người dùng.*",
-                    currentProcess: undefined
+                    streamStage: "DONE"
                 }));
             } else {
                 const errorMsg = err instanceof Error ? err.message : "Đã có lỗi xảy ra.";
@@ -958,9 +981,10 @@ function ChatPageInner() {
                 content: "",
                 thinking: "",
                 steps: [],
-                processes: [],
                 sources: undefined,
                 streaming: true,
+                streamStage: "IDLE",
+                processLogs: [],
                 error: undefined,
             };
             return copy;
@@ -984,21 +1008,53 @@ function ChatPageInner() {
                             break;
                         case "answer":
                             msg.content = msg.content + chunk.content;
-                            msg.currentProcess = undefined;
+                            msg.streamStage = "ANSWERING";
                             break;
-                        case "process":
-                            const pTextRegen = (chunk as any).message || (chunk as any).label || (chunk as any).content || (chunk as any).node || "Đang xử lý...";
-                            msg.processes = [...(msg.processes || []), pTextRegen];
-                            msg.currentProcess = pTextRegen;
+                        case "process": {
+                            const pc = chunk as any;
+                            const stage: string | undefined = pc.stage;
+                            const rawText = pc.message || pc.label || pc.content || pc.node || "Đang xử lý...";
+                            const text = stripEmoji(rawText);
+                            const group = getStageGroup(stage) || 3;
+
+                            msg.processLogs = [...(msg.processLogs || []), { id: Date.now().toString() + Math.random(), text, group, stage }];
+
+                            if (group === 1 && msg.streamStage !== "RETRIEVING" && msg.streamStage !== "ANSWERING" && msg.streamStage !== "DONE") {
+                                msg.streamStage = "ANALYZING";
+                            } else if (group === 2 && msg.streamStage !== "ANSWERING" && msg.streamStage !== "DONE") {
+                                msg.streamStage = "RETRIEVING";
+                            }
                             break;
+                        }
                         case "message_id":
                             msg.id = (chunk as any).messageId || msg.id;
                             break;
-                        case "metadata":
-                            msg.sources = (chunk as any).content?.sources;
+                        case "metadata": {
+                            const rawSources = chunk.content?.sources || [];
+                            const xmlContext = chunk.content?.context || "";
+
+                            const enrichedSources = rawSources.map((s: Source) => {
+                                if (s.type === "knowledge_graph" && s.id) {
+                                    const sourceBlockMatches = xmlContext.match(new RegExp(`<source[^>]*id="${s.id}"[^>]*>.*?<\\/source>`, 's'));
+                                    if (sourceBlockMatches) {
+                                        const innerXml = sourceBlockMatches[0];
+                                        const docRef = innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1] || "";
+                                        const sourceTitle = innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1] || "";
+                                        const path = innerXml.match(/<path>(.*?)<\/path>/s)?.[1] || "";
+                                        return { ...s, doc_ref: docRef, source_title: sourceTitle, path };
+                                    }
+                                }
+                                return s;
+                            });
+                            msg.sources = enrichedSources;
+                            if (chunk.content?.query_mode) {
+                                msg.queryMode = chunk.content.query_mode;
+                            }
                             break;
+                        }
                         case "done":
                             msg.streaming = false;
+                            msg.streamStage = "DONE";
                             break;
                     }
                     copy[idx] = msg;
@@ -1017,7 +1073,7 @@ function ChatPageInner() {
                         content: copy[idx].content
                             ? `${copy[idx].content}\n\n> *Thao tác bị hủy bỏ bởi người dùng.*`
                             : "> *Thao tác bị hủy bỏ bởi người dùng.*",
-                        currentProcess: undefined
+                        streamStage: "DONE"
                     };
                     return copy;
                 });
@@ -1088,26 +1144,26 @@ function ChatPageInner() {
                             </div>
                         )}
                         {messages.map((msg) =>
-                        msg.role === "user" ? (
-                            <UserMessage key={msg.id} msg={msg} />
-                        ) : (
-                            <MemoizedAiMessage
-                                key={msg.id}
-                                msg={msg}
-                                isLatest={messages.length > 0 && messages[messages.length - 1].id === msg.id}
-                                onRegenerate={handleRegenerate}
-                                onLawClick={setLawPanelNodeId}
-                                onLike={handleLike}
-                                onDislike={handleDislike}
-                            />
-                        )
+                            msg.role === "user" ? (
+                                <UserMessage key={msg.id} msg={msg} />
+                            ) : (
+                                <MemoizedAiMessage
+                                    key={msg.id}
+                                    msg={msg}
+                                    isLatest={messages.length > 0 && messages[messages.length - 1].id === msg.id}
+                                    onRegenerate={handleRegenerate}
+                                    onLawClick={setLawPanelNodeId}
+                                    onLike={handleLike}
+                                    onDislike={handleDislike}
+                                />
+                            )
                         )}
                     </>
                 )}
             </section>
 
             {/* Input Area */}
-            <ChatInput 
+            <ChatInput
                 onSend={handleSend}
                 onCancel={handleCancel}
                 isStreaming={isStreaming}

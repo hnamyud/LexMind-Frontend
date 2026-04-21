@@ -73,7 +73,7 @@ export default function KnowledgeGraphSection() {
       try {
         setLoading(true);
         // GET /graph/demo?id=d7_k7_c
-        const res = await apiClient.get<GraphData>("/graph/demo?id=d7_k7_c");
+        const res = await apiClient.get<GraphData>("/graph/demo?id=nd168_2024_d7_k7_c");
         if (res && res.nodes && res.edges) {
           setData(res);
         } else {

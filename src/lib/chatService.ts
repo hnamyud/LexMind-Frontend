@@ -23,7 +23,18 @@ export interface AnswerChunk {
 export interface MetadataChunk {
     type: "metadata";
     content: {
-        sources: { type: string; id: string; score: number }[];
+        sources: {
+            type: string;
+            id?: string;
+            score?: number;
+            url?: string;
+            title?: string;
+        }[];
+        context?: string;
+        query_mode?: string;
+        reflector_verdict?: string;
+        cacheHit?: boolean;
+        nodeTimings?: Record<string, number>;
     };
 }
 
@@ -39,6 +50,10 @@ export interface InfoChunk {
 export interface ProcessChunk {
     type: "process";
     content: string;
+    /** Backend stage identifier, e.g. "route" | "rewrite" | "cache" | "retrieval" | "reflect" | "generate" */
+    stage?: string;
+    message?: string;
+    label?: string;
 }
 
 export interface MessageIdChunk {
