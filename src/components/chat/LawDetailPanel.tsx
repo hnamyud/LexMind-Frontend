@@ -20,7 +20,12 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
         setLawNodes([]);
         try {
             const res = await lawService.getLawDetail(id);
-            setLawNodes(res.data ?? []);
+            // Chỉ giữ node từ cấp Điều trở xuống (bỏ Chương, Mục, Phần)
+            const STRUCTURAL_PATTERN = /_(CHUONG|MUC|PHAN)(_|$)/i;
+            const filtered = (res.data ?? []).filter(
+                (n) => !STRUCTURAL_PATTERN.test(n.id)
+            );
+            setLawNodes(filtered);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Không thể tải nội dung điều luật.");
         } finally {
@@ -46,17 +51,15 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
         <>
             {/* Backdrop overlay */}
             <div
-                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-                    isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-                }`}
+                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                    }`}
                 onClick={onClose}
             />
 
             {/* Drawer panel */}
             <aside
-                className={`fixed top-0 right-0 h-full z-50 flex flex-col bg-[var(--bg-panel)] border-l border-[var(--border-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${
-                    isOpen ? "translate-x-0" : "translate-x-full"
-                } w-full sm:w-[480px] md:w-[520px] lg:w-[560px]`}
+                className={`fixed top-0 right-0 h-full z-50 flex flex-col bg-[var(--bg-panel)] border-l border-[var(--border-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+                    } w-full sm:w-[480px] md:w-[520px] lg:w-[560px]`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-main)]">
@@ -140,11 +143,10 @@ function LawNodeCard({ node, index, total }: { node: LawNode; index: number; tot
 
     return (
         <div
-            className={`relative rounded-lg border transition-all ${
-                depth === 0
+            className={`relative rounded-lg border transition-all ${depth === 0
                     ? "border-[var(--accent-border)] bg-[var(--accent-soft)]"
                     : "border-[var(--border-subtle)] bg-[var(--bg-secondary)] shadow-sm"
-            }`}
+                }`}
             style={{ marginLeft: Math.min(depth, 2) * 12 }}
         >
             {/* Connection line */}
@@ -158,19 +160,17 @@ function LawNodeCard({ node, index, total }: { node: LawNode; index: number; tot
             <div className="px-4 py-3">
                 {/* Node header */}
                 <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                        depth === 0
+                    <span className={`text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded ${depth === 0
                             ? "bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent-border)]"
                             : "bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
-                    }`}>
+                        }`}>
                         {node.id}
                     </span>
                 </div>
 
                 {/* Title / short text */}
-                <p className={`text-[13px] font-semibold leading-relaxed mb-2 ${
-                    depth === 0 ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
-                }`}>
+                <p className={`text-[13px] font-semibold leading-relaxed mb-2 ${depth === 0 ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
+                    }`}>
                     {node.text}
                 </p>
 

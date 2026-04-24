@@ -77,9 +77,21 @@ export function refTextToNodeId(text: string): string | null {
     const lowerClean = clean.toLowerCase();
     if (lowerClean.includes("168/2024/nđ-cp") || lowerClean.includes("nghị định 168")) {
         docRef = "nd168_2024";
-    } else if (lowerClean.includes("trật tự, an toàn") || lowerClean.includes("luật trật tự")) {
+    } else if (
+        lowerClean.includes("trật tự, an toàn") ||
+        lowerClean.includes("trật tự an toàn") ||
+        lowerClean.includes("luật trật tự") ||
+        lowerClean.includes("36/2024/qh15") ||
+        lowerClean.includes("luật số 36") ||
+        lowerClean.includes("ttatgt")
+    ) {
         docRef = "l36_2024";
-    } else if (lowerClean.includes("35/2024/qh15") || lowerClean.includes("luật số 35") || lowerClean.includes("luật đường bộ")) {
+    } else if (
+        lowerClean.includes("35/2024/qh15") ||
+        lowerClean.includes("luật số 35") ||
+        lowerClean.includes("luật đường bộ") ||
+        lowerClean.includes("luật đb")
+    ) {
         docRef = "l35_2024";
     }
 

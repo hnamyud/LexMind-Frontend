@@ -64,20 +64,41 @@ function getStageGroup(stage?: string): 1 | 2 | 3 | null {
 }
 
 // ─── Source ID parser ─────────────────────────────────────────────────────────
+// Known doc-ref prefixes (order matters: longer first to avoid partial match)
+const DOC_REF_PREFIXES = ["nd168_2024", "l36_2024", "l35_2024"] as const;
+type DocRef = typeof DOC_REF_PREFIXES[number];
+
+const DOC_REF_LABELS: Record<DocRef, string> = {
+    nd168_2024: "NĐ 168/2024",
+    l35_2024: "Luật ĐB 2024",
+    l36_2024: "Luật TTATGT 2024",
+};
+
 function parseSourceId(id: string): string | null {
-    // format mới: có thể có tiền tố (vd: nd168_2024_d7_k7_c hoặc l35_2024_dieu_13)
-    const match = id.match(/^(?:([a-z0-9_]+?)_)?(?:dieu_|d)(\d+)(?:_k(\d+))?(?:_([a-z\u00f0-\u00ff]+))?$/);
+    // Tách prefix (vd: nd168_2024, l35_2024, l36_2024) ra khỏi phần structure
+    let docRef: DocRef | null = null;
+    let rest = id;
+    for (const prefix of DOC_REF_PREFIXES) {
+        if (id.startsWith(prefix + "_")) {
+            docRef = prefix;
+            rest = id.slice(prefix.length + 1); // bỏ "prefix_"
+            break;
+        }
+    }
+
+    // Phần còn lại phải khớp dạng: dieu_X | dX[_kY][_z]
+    const match = rest.match(/^(?:dieu_|(d))(\d+)(?:_k(\d+))?(?:_([a-zđăâêôơưáàảãạắằẳẵặấầẩẫậéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]+))?$/i);
     if (!match) return null;
-    const [, docRefRaw, dieu, khoan, diem] = match;
-    let result = `Điều ${dieu}`;
+
+    const [, dPrefix, dieuNum, khoan, diem] = match;
+    // Nếu bắt đầu bằng "d" (không phải "dieu_") → đây là format rút gọn d7
+    // Nếu bắt đầu bằng "dieu_" → dPrefix = undefined
+    void dPrefix;
+    let result = `Điều ${dieuNum}`;
     if (khoan) result += `, Khoản ${khoan}`;
     if (diem) result += `, Điểm ${diem}`;
 
-    if (docRefRaw) {
-        if (docRefRaw === "nd168_2024") result += " (NĐ 168/2024)";
-        else if (docRefRaw === "l35_2024") result += " (Luật ĐB 2024)";
-        else if (docRefRaw === "l36_2024") result += " (Luật TTATGT 2024)";
-    }
+    if (docRef) result += ` (${DOC_REF_LABELS[docRef]})`;
     return result;
 }
 

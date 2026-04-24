@@ -339,11 +339,10 @@ export default function LoginPage() {
                                 <button
                                     key={tab}
                                     onClick={() => handleTabChange(tab)}
-                                    className={`pb-3 mr-6 text-xs font-bold uppercase tracking-widest font-mono transition-all border-b-2 -mb-px ${
-                                        activeTab === tab
+                                    className={`pb-3 mr-6 text-xs font-bold uppercase tracking-widest font-mono transition-all border-b-2 -mb-px ${activeTab === tab
                                             ? "text-brand border-brand"
                                             : "text-gray-600 border-transparent hover:text-gray-400"
-                                    }`}
+                                        }`}
                                 >
                                     {tab === "login" ? "Sign In" : "Register"}
                                 </button>
