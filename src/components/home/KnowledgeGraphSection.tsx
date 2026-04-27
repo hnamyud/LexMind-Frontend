@@ -380,10 +380,10 @@ export default function KnowledgeGraphSection() {
 
       <div style={{ display: "flex", justifyContent: "center", gap: "clamp(24px,5vw,64px)", marginTop: "60px", flexWrap: "wrap" }}>
         {[
-          { v: "2,300+", l: "Legal nodes" },
-          { v: "4,800+", l: "Relationships" },
+          { v: "5,200+", l: "Legal nodes" },
+          { v: "7,600+", l: "Relationships" },
           { v: "99%",   l: "Citations the latest enacted law" },
-          { v: "<200ms", l: "Graph query" },
+          { v: "<500ms", l: "Graph query" },
         ].map((s) => (
           <div key={s.l} style={{ textAlign: "center" }}>
             <div style={{
