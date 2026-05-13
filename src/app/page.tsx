@@ -212,7 +212,7 @@ function HomePageInner() {
     >
       <div className="relative min-h-screen overflow-hidden">
         {/* Background: Neural Network Mesh (Vanta NET) */}
-        <div className="absolute top-0 left-0 w-full h-[70vh] sm:h-[800px] z-0"
+        <div className="absolute top-0 left-0 w-full h-[100svh] sm:h-[800px] z-0"
           style={{ maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)", WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)" }}>
           <NeuralMeshBackground />
         </div>
@@ -222,8 +222,10 @@ function HomePageInner() {
           background: "radial-gradient(ellipse at 50% 0%, rgba(0,20,30,0.3) 0%, transparent 60%), radial-gradient(ellipse at 50% 100%, rgba(5,5,5,0.8) 0%, transparent 50%)"
         }} />
 
+        {/* Header + Hero wrapper: fill viewport on mobile */}
+        <div className="relative z-10 flex flex-col min-h-[100svh]">
         {/* Navigation */}
-        <header className="relative z-10 flex items-center justify-between px-4 py-6 md:px-12 lg:px-24">
+        <header className="relative flex items-center justify-between px-4 py-6 md:px-12 lg:px-24">
           <div className="flex items-center gap-2 group cursor-pointer">
             <div
               className="size-8 rounded flex items-center justify-center"
@@ -299,7 +301,7 @@ function HomePageInner() {
         </header>
 
         {/* Hero Section */}
-        <main className="relative z-10 flex flex-col items-center justify-center px-4 pt-8 pb-16 text-center md:px-6 md:pt-16 lg:pt-20">
+        <main className="relative flex-1 flex flex-col items-center justify-center px-4 pb-16 text-center md:px-6">
           {/* Beta Badge */}
           <div
             className="inline-flex items-center gap-2 px-3 py-1 mb-8 rounded-full"
@@ -385,6 +387,7 @@ function HomePageInner() {
             </Link>
           </div>
         </main>
+        </div> {/* End Header + Hero wrapper */}
 
         {/* Knowledge Graph Rendering */}
         <div id="neural-map">
