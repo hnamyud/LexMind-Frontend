@@ -16,6 +16,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/lib/authService";
+import { AUTH_EXPIRED_EVENT } from "@/lib/appNotifications";
+import { clearTokens } from "@/lib/apiClient";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -27,12 +29,46 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const [authChecking, setAuthChecking] = useState(true);
 
     useEffect(() => {
+        const handler = () => {
+            clearTokens();
+            useAuthStore.setState({
+                user: null,
+                accessToken: null,
+                isLoading: false,
+                error: null,
+            });
+
+            const publicRoutes = ["/", "/login", "/register", "/presentation"];
+            const isPublic = publicRoutes.some(
+                (route) => pathname === route || pathname?.startsWith(route + "/")
+            );
+
+            if (!isPublic) {
+                router.push("/login?reason=session-expired");
+            }
+        };
+
+        window.addEventListener(AUTH_EXPIRED_EVENT, handler);
+        return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handler);
+    }, [pathname, router]);
+
+    useEffect(() => {
         // Chỉ chạy một lần
         if (initialized.current) return;
         initialized.current = true;
 
         const init = async () => {
             let success = false;
+            const params = new URLSearchParams(window.location.search);
+            const hasOAuthCallbackToken =
+                params.has("token") ||
+                params.has("accessToken") ||
+                params.has("access_token");
+
+            if (hasOAuthCallbackToken) {
+                setAuthChecking(false);
+                return;
+            }
 
             if (accessToken || authService.isAuthenticated()) {
                 // 1. Thử gọi API profile (bên trong fetchProfile, apiClient sẽ tự retry nếu 401)
@@ -55,7 +91,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                 (route) => pathname === route || pathname?.startsWith(route + "/")
             );
             if (!success && !isPublic) {
-                router.push("/login");
+                router.push("/login?reason=session-expired");
                 // Giữ authChecking = true → không render gì khi đang redirect
                 return;
             }

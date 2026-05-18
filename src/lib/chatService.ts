@@ -1,4 +1,5 @@
 import { getAccessToken, refreshAccessToken, ApiError } from "./apiClient";
+import { notifyHttpError, notifyNetworkError } from "@/lib/appNotifications";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api/v1";
 
@@ -126,7 +127,15 @@ async function authFetch(url: string, init: RequestInit, isRetry = false): Promi
     };
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
-    const response = await fetch(url, { ...init, headers, credentials: "include" });
+    let response: Response;
+    try {
+        response = await fetch(url, { ...init, headers, credentials: "include" });
+    } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+            notifyNetworkError();
+        }
+        throw err;
+    }
 
     if (response.status === 401 && !isRetry) {
         try {
@@ -137,6 +146,7 @@ async function authFetch(url: string, init: RequestInit, isRetry = false): Promi
                 true
             );
         } catch {
+            notifyHttpError(401);
             throw new ApiError(401, "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.");
         }
     }
@@ -147,6 +157,7 @@ async function authFetch(url: string, init: RequestInit, isRetry = false): Promi
             const err = await response.json();
             msg = err?.message ?? msg;
         } catch { /* ignore */ }
+        notifyHttpError(response.status, msg);
         throw new ApiError(response.status, msg);
     }
 

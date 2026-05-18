@@ -7,7 +7,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import NeuralMeshBackground from "@/components/home/NeuralMeshBackground";
 import KnowledgeGraphSection from "@/components/home/KnowledgeGraphSection";
 import { authService } from "@/lib/authService";
-import { setAccessToken } from "@/lib/apiClient";
 import ReactMarkdown from "react-markdown";
 
 /**
@@ -33,6 +32,25 @@ function useAuthAwareNav() {
   return { navigate, hasHydrated };
 }
 
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, "0")}`)
+        .join("")
+    );
+
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 function HomePageInner() {
   const { fetchProfile } = useAuthStore();
   const { accessToken, logout } = useAuthStore();
@@ -43,20 +61,39 @@ function HomePageInner() {
 
   // Xử lý Google OAuth2 callback: ?token=<access-token>
   useEffect(() => {
-    const token = searchParams.get("token");
+    const token =
+      searchParams.get("token") ||
+      searchParams.get("accessToken") ||
+      searchParams.get("access_token");
+    const refreshToken =
+      searchParams.get("refreshToken") ||
+      searchParams.get("refresh_token") ||
+      undefined;
     if (!token) return;
 
-    // Lưu token vào localStorage và store
-    setAccessToken(token);
-
-    fetchProfile().then(() => {
-      // Lấy user từ store để check role
-      const user = useAuthStore.getState().user as Record<string, unknown> | null;
-      if (user?.role === "ADMIN") {
-        router.replace("/admin");
-      } else {
-        router.replace("/chat");
+    authService.handleGoogleCallback(token, refreshToken);
+    const jwtUser = decodeJwtPayload(token);
+    const fallbackUser = jwtUser
+      ? {
+        id: String(jwtUser.id ?? ""),
+        email: String(jwtUser.email ?? ""),
+        name: String(jwtUser.name ?? jwtUser.email ?? "Google user"),
+        role: jwtUser.role,
       }
+      : null;
+
+    useAuthStore.setState({
+      accessToken: token,
+      user: fallbackUser,
+      isLoading: false,
+      error: null,
+    });
+
+    const target = fallbackUser?.role === "ADMIN" ? "/admin" : "/chat";
+    router.replace(target);
+
+    fetchProfile().catch(() => {
+      // Token đã được chấp nhận từ OAuth callback; profile lỗi sẽ được xử lý ở request kế tiếp.
     });
   }, [searchParams, fetchProfile, router]);
 

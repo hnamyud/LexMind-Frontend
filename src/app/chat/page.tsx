@@ -102,6 +102,35 @@ function parseSourceId(id: string): string | null {
     return result;
 }
 
+function decodeHtmlEntities(text?: string): string {
+    if (!text) return "";
+
+    return text
+        .replace(/&gt;/g, ">")
+        .replace(/&lt;/g, "<")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+}
+
+function compactLawSourceLabel(source: Source): string {
+    const fallback = source.id ? parseSourceId(source.id) ?? source.id : "Nguồn";
+    const rawLabel = decodeHtmlEntities(source.path || source.source_title || fallback);
+    const normalized = rawLabel
+        .replace(/Luật Trật tự,?\s*an toàn giao thông đường bộ/gi, "Luật TTATGTĐB")
+        .replace(/Luật Đường bộ/gi, "Luật ĐB")
+        .replace(/Nghị định\s+168\/2024\/NĐ-CP/gi, "NĐ 168/2024")
+        .replace(/\s*>\s*/g, " · ")
+        .replace(/\s*;\s*/g, " · ")
+        .replace(/\bĐiều\s+(\d+)/gi, "Đ$1")
+        .replace(/\bKhoản\s+(\d+)/gi, "K$1")
+        .replace(/\bĐiểm\s+([^\s·]+)/gi, "Điểm $1")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return normalized || fallback;
+}
+
 // ─── Strip leading emoji from process text ────────────────────────────────────
 function stripEmoji(text: string): string {
     return text.replace(/^[^\w\sđĐ]+\s*/, '');
@@ -474,30 +503,27 @@ function AiMessage({
                         <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border-subtle)' }}>
                             {kgSources.length > 0 && (
                                 <>
-                                    <p className="text-[10px] uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-faint)' }}>Nguồn tham chiếu</p>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="mb-1.5 flex items-center gap-2">
+                                        <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-faint)' }}>Nguồn tham chiếu</p>
+                                        <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>{kgSources.length}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
                                         {kgSources.map((src, idx) => {
-                                            const label = parseSourceId(src.id!) ?? src.id!;
+                                            const label = compactLawSourceLabel(src);
+                                            const fullLabel = decodeHtmlEntities(src.path || src.source_title || src.id || label);
                                             return (
                                                 <button
                                                     key={`src-${src.id}-${idx}`}
                                                     type="button"
                                                     onClick={() => onLawClick?.(src.id!)}
-                                                    className="px-2.5 py-1 text-[10px] rounded flex flex-col max-md:items-start max-md:text-left font-mono transition-all cursor-pointer hover:opacity-80 relative overflow-hidden"
-                                                    style={{ border: '1px solid var(--accent-border)', color: 'var(--text-muted)', backgroundColor: 'var(--accent-soft)' }}
-                                                    title={`Tra cứu: ${src.id}`}
+                                                    className="inline-flex max-w-full items-center gap-1.5 rounded px-2 py-0.5 text-[10px] font-mono leading-5 transition-all cursor-pointer hover:opacity-80"
+                                                    style={{ border: '1px solid var(--accent-border)', color: 'var(--accent)', backgroundColor: 'var(--accent-soft)' }}
+                                                    title={`Tra cứu: ${fullLabel}`}
                                                 >
-                                                    <div className="flex items-center gap-1.5 w-full">
-                                                        <span className="font-semibold text-[var(--accent)]">{src.path || label}</span>
-                                                        {src.score != null && (
-                                                            <span className="text-[var(--accent)] opacity-60 font-bold ml-auto text-[9px]">
-                                                                {formatRRFScore(src.score)}%
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {src.source_title && (
-                                                        <span className="text-[9px] opacity-70 mt-0.5 text-left truncate w-full max-w-[200px]" title={src.source_title}>
-                                                            {src.source_title}
+                                                    <span className="truncate">{label}</span>
+                                                    {src.score != null && (
+                                                        <span className="shrink-0 opacity-60 text-[9px]">
+                                                            {formatRRFScore(src.score)}%
                                                         </span>
                                                     )}
                                                 </button>
@@ -925,9 +951,9 @@ function ChatPageInner() {
                                     const sourceBlockMatches = xmlContext.match(new RegExp(`<source[^>]*id="${s.id}"[^>]*>.*?<\\/source>`, 's'));
                                     if (sourceBlockMatches) {
                                         const innerXml = sourceBlockMatches[0];
-                                        const docRef = innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1] || "";
-                                        const sourceTitle = innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1] || "";
-                                        const path = innerXml.match(/<path>(.*?)<\/path>/s)?.[1] || "";
+                                        const docRef = decodeHtmlEntities(innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1]);
+                                        const sourceTitle = decodeHtmlEntities(innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1]);
+                                        const path = decodeHtmlEntities(innerXml.match(/<path>(.*?)<\/path>/s)?.[1]);
                                         return { ...s, doc_ref: docRef, source_title: sourceTitle, path };
                                     }
                                 }
@@ -1055,9 +1081,9 @@ function ChatPageInner() {
                                     const sourceBlockMatches = xmlContext.match(new RegExp(`<source[^>]*id="${s.id}"[^>]*>.*?<\\/source>`, 's'));
                                     if (sourceBlockMatches) {
                                         const innerXml = sourceBlockMatches[0];
-                                        const docRef = innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1] || "";
-                                        const sourceTitle = innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1] || "";
-                                        const path = innerXml.match(/<path>(.*?)<\/path>/s)?.[1] || "";
+                                        const docRef = decodeHtmlEntities(innerXml.match(/<doc_ref>(.*?)<\/doc_ref>/s)?.[1]);
+                                        const sourceTitle = decodeHtmlEntities(innerXml.match(/<source_title>(.*?)<\/source_title>/s)?.[1]);
+                                        const path = decodeHtmlEntities(innerXml.match(/<path>(.*?)<\/path>/s)?.[1]);
                                         return { ...s, doc_ref: docRef, source_title: sourceTitle, path };
                                     }
                                 }

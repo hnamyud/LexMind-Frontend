@@ -249,6 +249,7 @@ export default function LoginPage() {
     const [activeTab, setActiveTab] = useState<Tab>("login");
     const [showPassword, setShowPassword] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [systemMessage, setSystemMessage] = useState<string | null>(null);
     const [showForgot, setShowForgot] = useState(false);
 
     // ── Login form ──
@@ -264,7 +265,20 @@ export default function LoginPage() {
         setActiveTab(tab);
         clearError();
         setSuccessMessage(null);
+        setSystemMessage(null);
     };
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const reason = params.get("reason");
+        if (reason === "session-expired") {
+            setSystemMessage("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.");
+            params.delete("reason");
+            const nextQuery = params.toString();
+            const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ""}`;
+            window.history.replaceState(null, "", nextUrl);
+        }
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -354,6 +368,12 @@ export default function LoginPage() {
                             <div className="mb-5 px-4 py-3 border border-red-500/40 bg-red-500/10 text-red-400 text-sm flex items-start gap-2 rounded">
                                 <span className="material-symbols-outlined text-base shrink-0 mt-0.5">error</span>
                                 <span>{error}</span>
+                            </div>
+                        )}
+                        {systemMessage && (
+                            <div className="mb-5 px-4 py-3 border border-amber-500/40 bg-amber-500/10 text-amber-300 text-sm flex items-start gap-2 rounded">
+                                <span className="material-symbols-outlined text-base shrink-0 mt-0.5">warning</span>
+                                <span>{systemMessage}</span>
                             </div>
                         )}
                         {successMessage && (

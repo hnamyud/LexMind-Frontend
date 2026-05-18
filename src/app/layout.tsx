@@ -3,6 +3,7 @@ import { Public_Sans, Inter, Roboto_Mono, Playfair_Display } from "next/font/goo
 import "./globals.css";
 import AuthProvider from "@/providers/AuthProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
+import NotificationProvider from "@/providers/NotificationProvider";
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -51,7 +52,9 @@ export default function RootLayout({
         className={`${publicSans.variable} ${inter.variable} ${robotoMono.variable} ${playfair.variable} antialiased`}
       >
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <NotificationProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>

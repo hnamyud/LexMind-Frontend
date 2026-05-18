@@ -1,3 +1,5 @@
+import { notifyHttpError, notifyNetworkError } from "@/lib/appNotifications";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8080/api/v1";
 
 export const GOOGLE_LOGIN_URL = `${BASE_URL}/auth/google/login`;
@@ -106,11 +108,17 @@ async function request<T>(
         if (token) headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${path}`, {
-        ...options,
-        headers,
-        credentials: "include", // Luôn gửi cookie để refresh_token được đính kèm
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${BASE_URL}${path}`, {
+            ...options,
+            headers,
+            credentials: "include", // Luôn gửi cookie để refresh_token được đính kèm
+        });
+    } catch (err) {
+        notifyNetworkError();
+        throw err;
+    }
 
     let raw: unknown;
     const contentType = response.headers.get("content-type");
@@ -139,6 +147,7 @@ async function request<T>(
             );
         } catch {
             // Refresh thất bại → ném lỗi để component xử lý (logout)
+            notifyHttpError(401);
             throw new ApiError(401, "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.", raw);
         }
     }
@@ -148,6 +157,7 @@ async function request<T>(
             (raw as WrappedResponse<unknown>)?.message ??
             (raw as { message?: string })?.message ??
             `Request failed with status ${response.status}`;
+        notifyHttpError(response.status, msg);
         throw new ApiError(response.status, msg, raw);
     }
 
