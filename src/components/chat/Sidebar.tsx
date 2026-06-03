@@ -133,12 +133,14 @@ export default function Sidebar({ isOpen = false, onClose, isExpanded, onToggleE
 
       <nav
         className={`fixed z-50 flex h-full shrink-0 flex-col transition-all duration-300 ease-in-out md:relative ${
-          showFull ? "w-72" : "w-20"
+          showFull ? "w-[85vw] max-w-72 md:w-72" : "w-20"
         } ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
         style={{
           background: "color-mix(in srgb, var(--bg-sidebar) 86%, transparent)",
           borderRight: "1px solid var(--border-primary)",
           backdropFilter: "blur(18px)",
+          paddingTop: "var(--safe-area-top)",
+          paddingBottom: "var(--safe-area-bottom)",
         }}
       >
         <div

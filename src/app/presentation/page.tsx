@@ -6,9 +6,9 @@ import { LexMindPresentation } from "@/components/presentation/LexMindPresentati
 
 export default function PresentationPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] px-5 py-6 text-[var(--text-primary)] md:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col gap-5">
-        <header className="flex items-center justify-between">
+    <div className="min-h-screen bg-[var(--bg-primary)] px-4 py-4 text-[var(--text-primary)] md:px-8 md:py-6">
+      <div className="mx-auto flex min-h-[calc(100dvh-2rem)] max-w-7xl flex-col gap-4 md:gap-5">
+        <header className="flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-2xl text-[var(--text-secondary)] shadow-[var(--shadow-bubble)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
@@ -16,13 +16,13 @@ export default function PresentationPage() {
           >
             ×
           </Link>
-          <div className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2 text-sm font-medium text-[var(--accent)]">
+          <div className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-2 text-xs font-medium text-[var(--accent)] md:px-4 md:text-sm">
             LexMind demo video
           </div>
         </header>
 
         <main className="flex flex-1 items-center justify-center">
-          <div className="w-full overflow-hidden rounded-[32px] border border-[var(--border-primary)] bg-[var(--surface-glass)] p-3 shadow-[var(--shadow-panel)] backdrop-blur-xl md:p-4">
+          <div className="w-full overflow-hidden rounded-[24px] border border-[var(--border-primary)] bg-[var(--surface-glass)] p-2.5 shadow-[var(--shadow-panel)] backdrop-blur-xl md:rounded-[32px] md:p-4">
             <Player
               component={LexMindPresentation}
               durationInFrames={1500}

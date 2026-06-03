@@ -58,11 +58,15 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
 
             {/* Drawer panel */}
             <aside
-                className={`fixed top-0 right-0 z-50 flex h-full flex-col border-l border-[var(--border-primary)] bg-[var(--bg-panel)] shadow-[var(--shadow-panel)] transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
-                    } w-full sm:w-[480px] md:w-[520px] lg:w-[560px]`}
+                className={`fixed inset-x-0 bottom-0 z-50 flex h-[82dvh] flex-col rounded-t-[28px] border border-[var(--border-primary)] bg-[var(--bg-panel)] shadow-[var(--shadow-panel)] transition-transform duration-300 ease-in-out sm:inset-y-0 sm:left-auto sm:right-0 sm:h-full sm:w-[480px] sm:rounded-none sm:rounded-l-[28px] sm:border-y-0 sm:border-r-0 sm:border-l ${
+                    isOpen ? "translate-y-0 sm:translate-x-0" : "translate-y-full sm:translate-x-full"
+                } md:w-[520px] lg:w-[560px]`}
             >
                 {/* Header */}
-                <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-5 py-4 backdrop-blur-xl">
+                <div
+                    className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-4 py-4 backdrop-blur-xl sm:px-5"
+                    style={{ paddingTop: "calc(1rem + var(--safe-area-top) * 0.2)" }}
+                >
                     <div className="flex items-center gap-2.5 min-w-0">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)]">
                             <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +100,10 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
                 </div>
 
                 {/* Body – scrollable */}
-                <div className="law-panel-scroll flex-1 space-y-4 overflow-y-auto bg-[var(--bg-primary)] px-5 py-5">
+                <div
+                    className="law-panel-scroll flex-1 space-y-4 overflow-y-auto bg-[var(--bg-primary)] px-4 py-4 sm:px-5 sm:py-5"
+                    style={{ paddingBottom: "calc(1rem + var(--safe-area-bottom))" }}
+                >
                     {loading && (
                         <div className="flex flex-col items-center justify-center gap-3 py-16">
                             <div className="w-8 h-8 border-2 border-[var(--accent-border)] border-t-[var(--accent)] rounded-full animate-spin" />
@@ -126,7 +133,7 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
                     {!loading && lawNodes.length > 0 && (
                         <div className="space-y-3">
                             {[...lawNodes].reverse().map((node, idx) => (
-                                <LawNodeCard key={`${node.id}-${idx}`} node={node} index={idx} total={lawNodes.length} />
+                                <LawNodeCard key={`${node.id}-${idx}`} node={node} index={idx} />
                             ))}
                         </div>
                     )}
@@ -137,7 +144,7 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
 }
 
 // ─── Sub-component: Law Node Card ─────────────────────────────────────────────
-function LawNodeCard({ node, index, total }: { node: LawNode; index: number; total: number }) {
+function LawNodeCard({ node, index }: { node: LawNode; index: number }) {
     // Depth indicator: deeper = more indented
     const depth = index; // 0 = top-level (Điều), 1 = Khoản, 2 = Điểm
 

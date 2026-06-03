@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { colors, sceneStyle, slideUp } from "./theme";
+import { colors, displayFont, sceneStyle, slideUp } from "./theme";
 
 export const Slide5CTA: React.FC = () => {
   const frame = useCurrentFrame();
@@ -20,7 +20,7 @@ export const Slide5CTA: React.FC = () => {
           Material 3 · Legal-first AI
         </div>
 
-        <h1 style={{ margin: "34px auto 0", maxWidth: 1120, fontSize: 92, lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 840 }}>
+        <h1 style={{ margin: "34px auto 0", maxWidth: 1120, fontSize: 92, lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 840, fontFamily: displayFont }}>
           Demo LexMind trong một luồng sáng, rõ và có căn cứ.
         </h1>
         <p style={{ margin: "26px auto 0", maxWidth: 860, color: colors.muted, fontSize: 30, lineHeight: 1.45 }}>

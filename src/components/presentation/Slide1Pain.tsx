@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, useCurrentFrame } from "remotion";
-import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
+import { colors, displayFont, sceneStyle, slideUp, surfaceStyle } from "./theme";
 
 const docs = [
   { title: "Nghị định 168/2024/NĐ-CP", meta: "Điều 7 · Khoản 13 · Điểm c" },
@@ -32,6 +32,7 @@ export const Slide1Pain: React.FC = () => {
               margin: 0,
               maxWidth: 900,
               fontWeight: 780,
+              fontFamily: displayFont,
             }}
           >
             Văn bản luật nhiều tầng, câu trả lời dễ mất căn cứ.

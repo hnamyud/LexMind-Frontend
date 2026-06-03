@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
+import { colors, displayFont, sceneStyle, slideUp, surfaceStyle } from "./theme";
 
 const features = [
   ["Citation-first", "Nguồn luật luôn nằm trong luồng trả lời"],
@@ -49,7 +49,7 @@ export const Slide2Solution: React.FC = () => {
           >
             L
           </div>
-          <h1 style={{ margin: "30px 0 0", fontSize: 96, lineHeight: 1, letterSpacing: "-0.035em", fontWeight: 820 }}>
+          <h1 style={{ margin: "30px 0 0", fontSize: 96, lineHeight: 1, letterSpacing: "-0.035em", fontWeight: 820, fontFamily: displayFont }}>
             LexMind
           </h1>
           <p style={{ marginTop: 24, color: colors.muted, fontSize: 34, lineHeight: 1.45, maxWidth: 700 }}>

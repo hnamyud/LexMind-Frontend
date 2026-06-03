@@ -21,7 +21,8 @@ export const colors = {
   outline: "#c3d0d6",
 };
 
-export const font = "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const font = "'Google Sans', 'Product Sans', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const displayFont = "'Google Sans Display', 'Google Sans', 'Product Sans', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 export const sceneStyle = {
   background:

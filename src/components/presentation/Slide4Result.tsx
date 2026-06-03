@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
+import { colors, displayFont, sceneStyle, slideUp, surfaceStyle } from "./theme";
 
 const bullets = [
   ["Hành vi", "Xe máy không chấp hành hiệu lệnh đèn tín hiệu giao thông."],
@@ -36,7 +36,7 @@ export const Slide4Result: React.FC = () => {
             L
           </div>
           <div>
-            <div style={{ fontSize: 30, fontWeight: 800 }}>LexMind trả lời</div>
+            <div style={{ fontSize: 30, fontWeight: 800, fontFamily: displayFont }}>LexMind trả lời</div>
             <div style={{ marginTop: 6, fontSize: 20, color: colors.faint }}>Nguồn luật rõ, có thể click để mở điều khoản gốc</div>
           </div>
           <div style={{ marginLeft: "auto", borderRadius: 999, padding: "12px 18px", background: colors.primaryContainer, color: colors.onPrimaryContainer, fontSize: 18, fontWeight: 760 }}>
@@ -60,7 +60,7 @@ export const Slide4Result: React.FC = () => {
                 <div style={{ color: index === 1 ? colors.primary : colors.muted, fontSize: 18, textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 800 }}>
                   {label}
                 </div>
-                <div style={{ marginTop: 10, color: colors.text, fontSize: index === 1 ? 38 : 28, lineHeight: 1.35, fontWeight: index === 1 ? 820 : 650 }}>
+                <div style={{ marginTop: 10, color: colors.text, fontSize: index === 1 ? 38 : 28, lineHeight: 1.35, fontWeight: index === 1 ? 820 : 650, fontFamily: index === 1 ? displayFont : undefined }}>
                   {value}
                 </div>
               </div>

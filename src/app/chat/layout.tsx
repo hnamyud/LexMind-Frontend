@@ -12,7 +12,7 @@ export default function ChatLayout({
     const [isSidebarExpanded, setIsSidebarExpanded] = useState(false); // desktop
 
     return (
-        <div className="app-shell relative flex h-screen w-full overflow-hidden font-[family-name:var(--font-inter)] antialiased">
+        <div className="app-shell relative flex h-dvh w-full overflow-hidden font-[family-name:var(--font-app-mono)] antialiased">
             <Sidebar
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
@@ -22,7 +22,10 @@ export default function ChatLayout({
 
             {/* Main content */}
             <div className="flex min-w-0 flex-1 flex-col transition-all duration-300">
-                <div className="md:hidden flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-4 py-3 backdrop-blur-xl">
+                <div
+                    className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-4 py-3 backdrop-blur-xl md:hidden"
+                    style={{ paddingTop: "calc(0.75rem + var(--safe-area-top))" }}
+                >
                     <div className="flex items-center gap-2">
                         <div className="grid h-8 w-8 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
                             <span className="material-symbols-outlined text-[16px]">auto_awesome</span>

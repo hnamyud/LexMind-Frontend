@@ -43,7 +43,13 @@ export const ChatInput: React.FC<ChatInputProps> = React.memo(({ onSend, onCance
     };
 
     return (
-        <div className="absolute bottom-0 left-0 w-full shrink-0 px-4 pb-3 pt-6 md:px-6 md:pb-6" style={{ background: "linear-gradient(180deg, transparent, var(--bg-main) 18%, var(--bg-main))" }}>
+        <div
+            className="absolute bottom-0 left-0 w-full shrink-0 px-3 pt-6 md:px-6"
+            style={{
+                paddingBottom: "calc(0.75rem + var(--safe-area-bottom))",
+                background: "linear-gradient(180deg, transparent, var(--bg-main) 18%, var(--bg-main))",
+            }}
+        >
             <div className="relative mx-auto max-w-4xl">
                 <textarea
                     ref={inputRef}
@@ -52,16 +58,16 @@ export const ChatInput: React.FC<ChatInputProps> = React.memo(({ onSend, onCance
                     onKeyDown={handleKeyDown}
                     rows={1}
                     disabled={isStreaming}
-                    className={`chat-input-scroll w-full resize-none rounded-[30px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] py-4 pl-5 pr-24 text-[15px] leading-relaxed text-[var(--md-sys-color-on-surface)] shadow-[var(--shadow-panel)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-state-focus)] disabled:opacity-50 md:py-5 md:pl-6 md:pr-28 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
+                    className={`chat-input-scroll w-full resize-none rounded-[28px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] py-3.5 pl-4 pr-20 text-[15px] leading-relaxed text-[var(--md-sys-color-on-surface)] shadow-[var(--shadow-panel)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-state-focus)] disabled:opacity-50 md:rounded-[30px] md:py-5 md:pl-6 md:pr-28 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
                     placeholder="Hỏi LexMind..."
                     style={{
-                        minHeight: 60, maxHeight: 240,
+                        minHeight: 56, maxHeight: 240,
                     }}
                 />
                 <button
                     type="button"
                     title="Nhập bằng giọng nói"
-                    className="absolute bottom-3 right-14 rounded-full p-2.5 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] md:bottom-4 md:right-16"
+                    className="absolute bottom-2.5 right-12 rounded-full p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] md:bottom-4 md:right-16 md:p-2.5"
                 >
                     <span className="material-symbols-outlined text-[20px]">mic</span>
                 </button>
@@ -69,7 +75,7 @@ export const ChatInput: React.FC<ChatInputProps> = React.memo(({ onSend, onCance
                 <button
                     onClick={handleSendClick}
                     disabled={!isStreaming && !hasInput}
-                    className={`absolute bottom-3 right-3 rounded-full p-2.5 shadow-sm transition-all md:bottom-4 md:right-4 ${isStreaming
+                    className={`absolute bottom-2.5 right-2.5 rounded-full p-2 shadow-sm transition-all md:bottom-4 md:right-4 md:p-2.5 ${isStreaming
                             ? "text-[var(--danger)] hover:bg-[var(--danger-soft)]"
                             : hasInput
                                 ? "bg-[var(--md-sys-color-primary)] text-[var(--md-sys-color-on-primary)] hover:shadow-[var(--shadow-bubble)] hover:brightness-105"

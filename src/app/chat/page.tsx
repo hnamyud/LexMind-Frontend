@@ -667,7 +667,7 @@ const UserMessage = React.memo(({ msg }: { msg: Message }) => {
                     text={msg.content}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded shrink-0"
                 />
-                <div className="px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] text-sm leading-relaxed break-words whitespace-pre-wrap"
+                <div className="max-w-[94%] rounded-2xl rounded-tr-sm px-3.5 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap sm:max-w-[85%] sm:px-4"
                     style={{
                         backgroundColor: 'var(--accent-soft)',
                         border: '1px solid var(--accent-border)',
@@ -1184,7 +1184,7 @@ function ChatPageInner() {
         <main className="flex-1 flex flex-col relative overflow-hidden h-full">
             {/* Hero Section – chỉ hiện khi chưa có messages */}
             {showHero && (
-                <div className="mx-auto w-full max-w-5xl px-4 py-10 md:px-6 md:py-14">
+                <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-6 md:py-14">
                     <div className="mx-auto max-w-3xl text-center">
                         <h1 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl md:text-5xl">
                             Đến lượt {displayName} rồi.
@@ -1194,13 +1194,13 @@ function ChatPageInner() {
                         </p>
                     </div>
 
-                    <div className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-2">
+                    <div className="mx-auto mt-8 grid max-w-4xl gap-3 sm:grid-cols-2 sm:gap-4">
                         {WELCOME_SUGGESTIONS.map((item) => (
                             <button
                                 key={item.title}
                                 type="button"
                                 onClick={() => handleSend(item.prompt)}
-                                className="md3-panel flex min-h-[148px] flex-col items-start rounded-[24px] p-5 text-left shadow-[var(--shadow-bubble)] transition-all hover:-translate-y-0.5 hover:border-[var(--accent-border)] hover:bg-[var(--surface-container-low)]"
+                                className="md3-panel flex min-h-[132px] flex-col items-start rounded-[22px] p-4 text-left shadow-[var(--shadow-bubble)] transition-all hover:-translate-y-0.5 hover:border-[var(--accent-border)] hover:bg-[var(--surface-container-low)] sm:min-h-[148px] sm:rounded-[24px] sm:p-5"
                             >
                                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
                                     <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
@@ -1219,7 +1219,7 @@ function ChatPageInner() {
             <section
                 ref={chatStreamRef}
                 onScroll={handleScroll}
-                className="chat-stream flex-1 overflow-y-auto px-3 py-4 sm:px-4 md:px-6 space-y-6 md:space-y-8 max-w-4xl mx-auto w-full pb-48"
+                className="chat-stream mx-auto w-full max-w-4xl flex-1 space-y-6 overflow-y-auto px-3 py-4 pb-44 sm:px-4 md:space-y-8 md:px-6 md:pb-48"
             >
                 {isLoadingHistory ? (
                     <div className="flex justify-center py-10">

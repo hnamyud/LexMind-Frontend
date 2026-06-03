@@ -88,6 +88,7 @@ export default function KnowledgeGraphSection() {
 
   const [tooltip, setTooltip] = useState<TooltipState>({ visible: false, x: 0, y: 0, node: null });
   const [dims, setDims] = useState({ w: 960, h: 580 });
+  const isCompact = dims.w < 640;
 
   // Fetch data
   useEffect(() => {
@@ -240,7 +241,7 @@ export default function KnowledgeGraphSection() {
       .attr("dominant-baseline", "central")
       .attr("font-size", (d) => Math.max(9, d.r * 0.62))
       .attr("font-weight", "700")
-      .attr("font-family", "'JetBrains Mono', monospace")
+      .attr("font-family", "var(--font-app-mono)")
       .attr("fill", graphColors.textOnNode)
       .attr("pointer-events", "none");
 
@@ -319,12 +320,12 @@ export default function KnowledgeGraphSection() {
   }, [dims, data]);
 
   return (
-    <section style={{ background: "transparent", padding: "100px 24px 80px", position: "relative", zIndex: 10 }}>
-      <div style={{ textAlign: "center", marginBottom: "34px", maxWidth: "760px", marginInline: "auto" }}>
+    <section style={{ background: "transparent", padding: isCompact ? "72px 16px 64px" : "100px 24px 80px", position: "relative", zIndex: 10 }}>
+      <div style={{ textAlign: "center", marginBottom: isCompact ? "24px" : "34px", maxWidth: "760px", marginInline: "auto" }}>
         <span style={{
           display: "inline-block", fontSize: "10px", letterSpacing: "0.2em",
           color: "var(--accent)", textTransform: "uppercase",
-          fontFamily: "'JetBrains Mono',monospace", marginBottom: "18px",
+          fontFamily: "var(--font-app-mono)", marginBottom: isCompact ? "14px" : "18px",
           border: "1px solid var(--accent-border)", borderRadius: "99px", padding: "4px 14px",
           background: "var(--accent-soft)",
         }}>
@@ -339,8 +340,8 @@ export default function KnowledgeGraphSection() {
           <br />minh bạch đến từng chi tiết.
         </h2>
         <p style={{
-          color: "var(--text-secondary)", fontSize: "14px", maxWidth: "560px",
-          margin: "0 auto", lineHeight: 1.75, fontFamily: "system-ui,sans-serif",
+          color: "var(--text-secondary)", fontSize: isCompact ? "13px" : "14px", maxWidth: "560px",
+          margin: "0 auto", lineHeight: 1.75, fontFamily: "var(--font-google-sans)",
         }}>
           Di chuột để xem chi tiết · Kéo để di chuyển · Cuộn để thu phóng
         </p>
@@ -348,9 +349,9 @@ export default function KnowledgeGraphSection() {
 
       <div ref={containerRef} style={{
         position: "relative", maxWidth: "1040px", margin: "0 auto",
-        borderRadius: "24px", border: "1px solid var(--border-primary)",
+        borderRadius: isCompact ? "20px" : "24px", border: "1px solid var(--border-primary)",
         background: "linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 70%, transparent), color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent))",
-        overflow: "hidden", minHeight: "520px",
+        overflow: "hidden", minHeight: isCompact ? "420px" : "520px",
         boxShadow: "var(--shadow-panel)",
       }}>
         {loading ? (
@@ -367,22 +368,22 @@ export default function KnowledgeGraphSection() {
 
         <div style={{
           position: "absolute",
-          top: 18,
-          left: 18,
+          top: isCompact ? 12 : 18,
+          left: isCompact ? 12 : 18,
           zIndex: 15,
-          padding: "12px 14px",
-          borderRadius: "16px",
+          padding: isCompact ? "10px 12px" : "12px 14px",
+          borderRadius: isCompact ? "14px" : "16px",
           background: "color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 88%, transparent)",
           border: "1px solid var(--border-primary)",
           boxShadow: "var(--shadow-bubble)",
-          fontFamily: "system-ui,sans-serif",
+          fontFamily: "var(--font-google-sans)",
         }}>
           <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "10px" }}>
             Legend
           </div>
           <div style={{ display: "grid", gap: "8px" }}>
             {LEGEND_ITEMS.map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: isCompact ? "11px" : "12px", color: "var(--text-secondary)" }}>
                 <span style={{ width: "10px", height: "10px", borderRadius: "999px", background: `var(${item.token})`, display: "inline-block" }} />
                 <span>{item.label}</span>
               </div>
@@ -395,15 +396,15 @@ export default function KnowledgeGraphSection() {
             position: "absolute", left: tooltip.x, top: tooltip.y,
             background: "color-mix(in srgb, var(--md-sys-color-inverse-surface) 96%, transparent)",
             border: `1px solid ${tooltip.node.colorHex}44`,
-            borderRadius: "14px", padding: "12px 14px",
-            pointerEvents: "none", maxWidth: "220px", zIndex: 20,
-            fontFamily: "system-ui,sans-serif",
+            borderRadius: "16px", padding: "12px 14px",
+            pointerEvents: "none", maxWidth: isCompact ? "200px" : "220px", zIndex: 20,
+            fontFamily: "var(--font-google-sans)",
             boxShadow: "0 14px 28px rgba(0,0,0,0.28)",
           }}>
             <div style={{
               display: "inline-block", fontSize: "9px", letterSpacing: "0.12em",
               textTransform: "uppercase", color: tooltip.node.colorHex,
-              fontFamily: "'JetBrains Mono',monospace", marginBottom: "5px",
+              fontFamily: "var(--font-app-mono)", marginBottom: "5px",
               border: `1px solid ${tooltip.node.colorHex}44`,
               borderRadius: "4px", padding: "2px 7px",
             }}>
@@ -420,13 +421,14 @@ export default function KnowledgeGraphSection() {
 
         {data && data.nodes && data.nodes.length > 0 && (
           <div style={{
-            position: "absolute", top: 18, right: 18, fontSize: "9px",
+            position: "absolute", top: isCompact ? 12 : 18, right: isCompact ? 12 : 18, fontSize: "9px",
             letterSpacing: "0.14em", color: "var(--text-muted)",
-            fontFamily: "'JetBrains Mono',monospace", pointerEvents: "none",
+            fontFamily: "var(--font-app-mono)", pointerEvents: "none",
             background: "color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 72%, transparent)",
             border: "1px solid var(--border-subtle)",
             borderRadius: "999px",
             padding: "6px 10px",
+            display: isCompact ? "none" : "block",
           }}>
             LEXMIND · {data.nodes.length} NODES · {data.edges.length} EDGES
           </div>
@@ -434,13 +436,14 @@ export default function KnowledgeGraphSection() {
         <div style={{
           position: "absolute", bottom: 14, right: 16, fontSize: "9px",
           letterSpacing: "0.1em", color: "var(--text-faint)",
-          fontFamily: "'JetBrains Mono',monospace", pointerEvents: "none",
+          fontFamily: "var(--font-app-mono)", pointerEvents: "none",
+          display: isCompact ? "none" : "block",
         }}>
           SCROLL TO ZOOM · DRAG TO PAN
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: "clamp(24px,5vw,64px)", marginTop: "60px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "clamp(20px,5vw,64px)", marginTop: isCompact ? "40px" : "60px", flexWrap: "wrap" }}>
         {[
           { v: "5,200+", l: "Legal nodes" },
           { v: "7,600+", l: "Relationships" },
@@ -450,11 +453,11 @@ export default function KnowledgeGraphSection() {
           <div key={s.l} style={{ textAlign: "center" }}>
             <div style={{
               fontSize: "clamp(24px,3vw,34px)", fontWeight: 800, color: "var(--accent)",
-              lineHeight: 1, fontFamily: "'JetBrains Mono',monospace", letterSpacing: "-0.02em",
+              lineHeight: 1, fontFamily: "var(--font-app-mono)", letterSpacing: "-0.02em",
             }}>{s.v}</div>
             <div style={{
               fontSize: "11px", color: "var(--text-muted)", marginTop: "6px",
-              letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "system-ui,sans-serif",
+              letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "var(--font-google-sans)",
             }}>{s.l}</div>
           </div>
         ))}

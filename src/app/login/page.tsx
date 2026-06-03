@@ -141,9 +141,9 @@ function ForgotPasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-3 backdrop-blur-sm md:p-4">
       <div className="absolute inset-0" onClick={onClose} />
-      <MdSurface className="relative z-10 w-full max-w-md p-6" glass>
+      <MdSurface className="relative z-10 max-h-[calc(100dvh-1.5rem-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-md overflow-y-auto p-5 md:max-h-[calc(100dvh-2rem)] md:p-6" glass>
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Password recovery</p>
@@ -299,24 +299,24 @@ export default function LoginPage() {
     <>
       {showForgot && <ForgotPasswordModal onClose={closeForgot} />}
 
-      <div className="min-h-screen overflow-hidden md3-hero">
-        <div className="mx-auto grid min-h-screen max-w-[1380px] gap-8 px-4 py-6 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <section className="order-2 space-y-6 lg:order-1">
+      <div className="min-h-screen overflow-x-hidden md3-hero">
+        <div className="mx-auto grid min-h-screen max-w-[1380px] gap-6 px-4 py-4 md:px-8 md:py-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:gap-8">
+          <section className="order-2 space-y-5 pb-4 lg:order-1 lg:space-y-6 lg:pb-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-3 py-1 text-xs font-medium text-[var(--accent)]">
               <span className="material-symbols-outlined text-[16px]">shield_lock</span>
               Secure legal workspace
             </div>
 
             <div className="space-y-4">
-              <h1 className="max-w-xl text-4xl font-semibold leading-[1.05] tracking-tight text-[var(--text-primary)] sm:text-5xl">
+              <h1 className="max-w-xl text-[2.65rem] font-semibold leading-[0.98] tracking-tight text-[var(--text-primary)] sm:text-5xl">
                 Bước vào không gian làm việc pháp lý tinh gọn, minh bạch và hiệu quả.
               </h1>
-              <p className="max-w-xl text-base leading-8 text-[var(--text-secondary)]">
+              <p className="max-w-xl text-sm leading-7 text-[var(--text-secondary)] sm:text-base sm:leading-8">
                 Trải nghiệm giải pháp tra cứu luật dựa trên AI kết hợp Bản đồ tri thức. Hệ thống giúp bạn tối ưu hóa quy trình phân tích, trích dẫn nguồn luật chính xác và quản lý dữ liệu pháp lý chỉ trong một nền tảng.
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="hidden gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid">
               {[
                 ["Tương tác trực quan", "Giao diện hội thoại tối giản, tập trung hoàn toàn vào câu hỏi và câu trả lời của bạn."],
                 ["Minh bạch nguồn luật", "Mọi câu trả lời đều đi kèm trích dẫn điều khoản, nghị định chính xác theo thời gian thực."],
@@ -331,7 +331,7 @@ export default function LoginPage() {
           </section>
 
           <section className="order-1 lg:order-2">
-            <MdSurface className="mx-auto max-w-lg p-6 md:p-8" glass>
+            <MdSurface className="mx-auto max-w-lg p-5 md:p-8" glass>
               <div className="mb-6 flex items-center gap-3">
                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
                   <span className="material-symbols-outlined text-[22px]">gavel</span>
@@ -347,7 +347,7 @@ export default function LoginPage() {
                   <button
                     key={tab}
                     onClick={() => handleTabChange(tab)}
-                    className={`flex-1 rounded-full px-4 py-2 text-sm transition-colors ${
+                    className={`flex-1 rounded-full px-4 py-2.5 text-sm transition-colors ${
                       activeTab === tab
                         ? "bg-[var(--bg-secondary)] text-[var(--text-primary)] shadow-sm"
                         : "text-[var(--text-muted)]"
@@ -360,7 +360,7 @@ export default function LoginPage() {
 
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
+                  <h2 className="text-xl font-semibold text-[var(--text-primary)] sm:text-2xl">
                     {activeTab === "login" ? "Chào mừng quay lại" : "Tạo tài khoản mới"}
                   </h2>
                   <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">

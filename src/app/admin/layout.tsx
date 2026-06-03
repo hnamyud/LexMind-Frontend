@@ -81,7 +81,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
     if (!hasHydrated) {
         return (
-            <div className="flex h-screen items-center justify-center bg-[var(--bg-primary)]">
+            <div className="flex h-dvh items-center justify-center bg-[var(--bg-primary)]">
                 <span className="animate-pulse text-sm text-[var(--text-muted)]">Đang tải...</span>
             </div>
         );
@@ -92,7 +92,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="app-shell flex h-screen overflow-hidden bg-[var(--bg-primary)]">
+        <div className="app-shell flex h-dvh overflow-hidden bg-[var(--bg-primary)]">
             {/* Mobile overlay */}
             {sidebarOpen && (
                 <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} />
@@ -101,10 +101,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Sidebar */}
             <aside className={`
                 fixed md:static inset-y-0 left-0 z-40
-                w-64 bg-[color-mix(in_srgb,var(--bg-sidebar)_88%,transparent)] border-r border-[var(--border-primary)] flex flex-col backdrop-blur-xl
+                w-[85vw] max-w-64 bg-[color-mix(in_srgb,var(--bg-sidebar)_88%,transparent)] border-r border-[var(--border-primary)] flex flex-col backdrop-blur-xl md:w-64
                 transform transition-transform duration-200
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-            `}>
+            `}
+            style={{ paddingTop: "var(--safe-area-top)", paddingBottom: "var(--safe-area-bottom)" }}>
                 {/* Logo / Header */}
                 <div className="border-b border-[var(--border-primary)] px-4 py-5">
                     <div className="flex items-center gap-2.5">
@@ -159,7 +160,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Top bar */}
-                <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border-primary)] bg-[var(--surface-glass)] px-4 backdrop-blur-xl">
+                <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--border-primary)] bg-[var(--surface-glass)] px-4 backdrop-blur-xl md:h-14" style={{ paddingTop: "calc(var(--safe-area-top) * 0.35)" }}>
                     {/* Mobile menu button */}
                     <button
                         onClick={() => setSidebarOpen(true)}

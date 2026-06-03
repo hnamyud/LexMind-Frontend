@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, useCurrentFrame } from "remotion";
-import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
+import { colors, font, sceneStyle, slideUp, surfaceStyle } from "./theme";
 
 const QUESTION = "Xe máy vượt đèn đỏ bị phạt thế nào?";
 
@@ -85,7 +85,7 @@ export const Slide3Action: React.FC = () => {
                 <g key={node.label} transform={`translate(${node.x}, ${node.y}) scale(${p})`} opacity={p}>
                   <circle r={70} fill={node.color} opacity={0.16} />
                   <circle r={46} fill={node.color} />
-                  <text y={90} textAnchor="middle" fill={colors.text} fontFamily="system-ui" fontSize={30} fontWeight={760}>
+                  <text y={90} textAnchor="middle" fill={colors.text} fontFamily={font} fontSize={30} fontWeight={760}>
                     {node.label}
                   </text>
                 </g>
