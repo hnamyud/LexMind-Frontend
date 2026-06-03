@@ -1,106 +1,103 @@
-import React, { useMemo } from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, spring, useVideoConfig, Audio } from "remotion";
+import React from "react";
+import { AbsoluteFill, Audio, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
+
+const features = [
+  ["Citation-first", "Nguồn luật luôn nằm trong luồng trả lời"],
+  ["Graph-backed", "Quan hệ điều khoản được truy vết rõ"],
+  ["Ops-ready", "Admin review nhanh, sáng và dễ scan"],
+];
 
 export const Slide2Solution: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
-
-  // Logo spring at frame 10
-  const logoScale = spring({ frame: Math.max(0, frame - 10), fps, config: { damping: 14 } });
-
-  // Sweep light effect starting at frame 40, duration 30
-  const sweepX = interpolate(frame, [40, 70], [-200, width + 500], { extrapolateRight: "clamp" });
-
-  // Neural mesh dots opacity
-  const meshOpacity = interpolate(frame, [50, 80], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
-  const nodes = useMemo(() => Array.from({ length: 40 }).map(() => ({
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    r: Math.random() * 4 + 2,
-    vx: Math.random() * 0.4 - 0.2, // very slow drift
-    vy: Math.random() * 0.4 - 0.2
-  })), []);
-
-  const edges = useMemo(() => {
-    const lines = [];
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
-        if (dx * dx + dy * dy < 400) {
-          lines.push({ source: nodes[i], target: nodes[j] });
-        }
-      }
-    }
-    return lines;
-  }, [nodes]);
+  const { fps } = useVideoConfig();
+  const logoScale = spring({ frame: Math.max(0, frame - 12), fps, config: { damping: 16, mass: 0.75 } });
+  const sweep = interpolate(frame, [28, 80], [-500, 2100], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#050505" }}>
+    <AbsoluteFill style={{ ...sceneStyle, padding: 96 }}>
       <Audio src="/presentation/audio/slide_2.mp3" />
-      {/* Background sweep clearing out the old text conceptually */}
+
       <div
         style={{
           position: "absolute",
-          top: 0, bottom: 0,
-          left: sweepX,
-          width: "2px",
-          backgroundColor: "#00f2ff",
-          boxShadow: "0 0 120px 40px rgba(0,242,255,0.7)",
-          zIndex: 5
+          top: 0,
+          bottom: 0,
+          left: sweep,
+          width: 220,
+          transform: "skewX(-14deg)",
+          background: "linear-gradient(90deg, transparent, rgba(36,183,201,0.28), transparent)",
         }}
       />
 
-      {/* Neural Mesh SVG (Visible after sweep) */}
-      <AbsoluteFill style={{ opacity: meshOpacity, zIndex: 1 }}>
-        <svg width="100%" height="100%">
-          {edges.map((e, idx) => (
-            <line
-              key={idx}
-              x1={`${e.source.x + (frame * e.source.vx) * 0.2}%`}
-              y1={`${e.source.y + (frame * e.source.vy) * 0.2}%`}
-              x2={`${e.target.x + (frame * e.target.vx) * 0.2}%`}
-              y2={`${e.target.y + (frame * e.target.vy) * 0.2}%`}
-              stroke="rgba(0, 242, 255, 0.2)"
-              strokeWidth={1}
-            />
-          ))}
-          {nodes.map((n, idx) => (
-            <circle
-              key={idx}
-              cx={`${n.x + (frame * n.vx) * 0.2}%`}
-              cy={`${n.y + (frame * n.vy) * 0.2}%`}
-              r={n.r}
-              fill="#00f2ff"
-              opacity={0.8}
-            />
-          ))}
-        </svg>
-      </AbsoluteFill>
-
-      {/* LexMind Logo in Center */}
-      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", zIndex: 10 }}>
-        <div style={{ transform: `scale(${logoScale})`, display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 70, height: "100%", alignItems: "center" }}>
+        <div style={{ ...slideUp(frame, 18) }}>
           <div
             style={{
-              width: "120px", height: "120px",
-              backgroundColor: "#00f2ff",
-              borderRadius: "24px",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 60px rgba(0,242,255,0.4)",
-              marginBottom: "30px"
+              width: 128,
+              height: 128,
+              borderRadius: 36,
+              background: colors.primaryContainer,
+              color: colors.primary,
+              display: "grid",
+              placeItems: "center",
+              fontSize: 64,
+              fontWeight: 900,
+              transform: `scale(${logoScale})`,
+              boxShadow: "0 22px 60px rgba(15,108,122,0.18)",
             }}
           >
-            {/* Using a simple text icon simulation for "Gavel" since material symbols might not load smoothly in Remotion without setup */}
-            <span style={{ fontSize: "64px", fontWeight: "bold", color: "#000", fontFamily: "system-ui" }}>L</span>
+            L
           </div>
-          <h1 style={{ fontSize: "72px", fontWeight: 900, color: "#fff", margin: 0, letterSpacing: "0.05em", fontFamily: "system-ui" }}>
-            LEXMIND
+          <h1 style={{ margin: "30px 0 0", fontSize: 96, lineHeight: 1, letterSpacing: "-0.035em", fontWeight: 820 }}>
+            LexMind
           </h1>
+          <p style={{ marginTop: 24, color: colors.muted, fontSize: 34, lineHeight: 1.45, maxWidth: 700 }}>
+            Một workspace pháp lý theo Material 3: nhẹ, sáng, có căn cứ và sẵn sàng demo bằng video.
+          </p>
         </div>
-      </AbsoluteFill>
 
+        <div style={{ ...surfaceStyle, ...slideUp(frame, 56), borderRadius: 44, padding: 34 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 18, paddingBottom: 26, borderBottom: `1px solid ${colors.outline}` }}>
+            <div style={{ width: 62, height: 62, borderRadius: 22, background: colors.primaryContainer, color: colors.primary, display: "grid", placeItems: "center", fontSize: 34 }}>
+              ✦
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 760 }}>LexMind chat shell</div>
+              <div style={{ marginTop: 6, color: colors.faint, fontSize: 20 }}>Material 3 surfaces · legal citation chips</div>
+            </div>
+            <div style={{ marginLeft: "auto", borderRadius: 999, padding: "10px 18px", background: colors.surfaceHigh, color: colors.primary, fontSize: 18, fontWeight: 700 }}>
+              Pháp lý
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 22, marginTop: 32 }}>
+            {features.map(([title, copy], index) => (
+              <div
+                key={title}
+                style={{
+                  ...slideUp(frame, 82 + index * 16),
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 22,
+                  borderRadius: 28,
+                  padding: "24px 26px",
+                  background: index === 0 ? colors.primaryContainer : colors.surfaceHigh,
+                  border: `1px solid ${colors.outline}`,
+                }}
+              >
+                <div style={{ width: 42, height: 42, borderRadius: 99, background: index === 0 ? colors.primary : colors.secondary, color: "#fff", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 900 }}>
+                  {index + 1}
+                </div>
+                <div>
+                  <div style={{ fontSize: 25, fontWeight: 780 }}>{title}</div>
+                  <div style={{ color: colors.muted, fontSize: 20, marginTop: 5 }}>{copy}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </AbsoluteFill>
   );
 };

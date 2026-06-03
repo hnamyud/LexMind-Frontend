@@ -43,8 +43,8 @@ export default function AdminFeedbacksPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <div>
-                <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Phân tích phản hồi</h1>
-                <p className="text-xs text-[var(--text-muted)] font-mono mt-1">Đánh giá chất lượng câu trả lời AI</p>
+                <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Phân tích phản hồi</h1>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">Đánh giá chất lượng câu trả lời AI</p>
             </div>
 
             {/* Analytics Overview */}
@@ -56,11 +56,11 @@ export default function AdminFeedbacksPage() {
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">Like</p>
-                        <p className="text-2xl font-bold text-green-500">{analytics.overview.likeCount}</p>
+                        <p className="text-2xl font-bold text-[var(--success)]">{analytics.overview.likeCount}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">Dislike</p>
-                        <p className="text-2xl font-bold text-red-500">{analytics.overview.dislikeCount}</p>
+                        <p className="text-2xl font-bold text-[var(--danger)]">{analytics.overview.dislikeCount}</p>
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">Tỉ lệ Like</p>
@@ -71,7 +71,7 @@ export default function AdminFeedbacksPage() {
                     </div>
                     <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
                         <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-mono mb-1">Điểm chất lượng</p>
-                        <p className="text-2xl font-bold text-brand">{analytics.overview.qualityScore}</p>
+                        <p className="text-2xl font-bold text-[var(--accent)]">{analytics.overview.qualityScore}</p>
                     </div>
                 </div>
             )}
@@ -88,7 +88,7 @@ export default function AdminFeedbacksPage() {
                                 <div key={i} className="flex items-center gap-3">
                                     <span className="text-xs text-[var(--text-secondary)] w-1/3 truncate">{r.reason}</span>
                                     <div className="flex-1 h-2 bg-[var(--bg-hover)] rounded-full overflow-hidden">
-                                        <div className="h-full bg-red-500/60 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                        <div className="h-full bg-[var(--danger)] rounded-full transition-all" style={{ width: `${pct}%` }} />
                                     </div>
                                     <span className="text-xs text-[var(--text-muted)] font-mono w-8 text-right">{r.count}</span>
                                 </div>
@@ -105,12 +105,12 @@ export default function AdminFeedbacksPage() {
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     placeholder="Tìm theo lý do dislike..."
-                    className="bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-[var(--accent)] font-mono w-56"
+                    className="h-11 w-56 rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
                 />
                 <select
                     value={likeFilter}
                     onChange={(e) => { setLikeFilter(e.target.value); setPage(1); }}
-                    className="bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-[var(--accent)] font-mono"
+                    className="h-11 rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
                 >
                     <option value="">Tất cả</option>
                     <option value="true">Like</option>
@@ -143,7 +143,7 @@ export default function AdminFeedbacksPage() {
                                         <td className="px-4 py-3 text-[var(--text-primary)] font-medium">{f.user?.fullName || "—"}</td>
                                         <td className="px-4 py-3 text-[var(--text-secondary)] truncate max-w-[200px]">{f.message?.question || "—"}</td>
                                         <td className="px-4 py-3">
-                                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${f.isLike ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"}`}>
+                                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${f.isLike ? "bg-[var(--success-soft)] text-[var(--success)] border-[var(--success-border)]" : "bg-[var(--danger-soft)] text-[var(--danger)] border-[var(--danger-border)]"}`}>
                                                 {f.isLike ? "LIKE" : "DISLIKE"}
                                             </span>
                                         </td>

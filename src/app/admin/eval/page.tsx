@@ -74,19 +74,19 @@ export default function EvalPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">EVALUATION SESSIONS</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Evaluation sessions</h1>
                 <button
                     onClick={fetchSessions}
-                    className="px-3 py-1.5 text-xs font-bold rounded bg-[var(--bg-hover)] text-[var(--text-primary)] transition-colors hover:bg-[var(--border-subtle)]"
+                    className="rounded-full bg-[var(--bg-hover)] px-4 py-2 text-sm text-[var(--text-primary)] transition-colors hover:bg-[var(--border-subtle)]"
                 >
-                    REFRESH
+                    Refresh
                 </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Run New Batch Form */}
-                <div className="lg:col-span-1 border border-[var(--border-primary)] rounded-lg bg-[var(--bg-secondary)] p-5">
-                    <h2 className="text-sm font-bold tracking-widest uppercase mb-4 text-[var(--text-primary)]">Run New Batch</h2>
+                <div className="lg:col-span-1 rounded-[28px] border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-5">
+                    <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">Run new batch</h2>
                     <form onSubmit={handleRunBatch} className="space-y-4">
                         <div>
                             <label className="block text-xs text-[var(--text-muted)] mb-1 uppercase tracking-widest">Dataset</label>
@@ -172,7 +172,7 @@ export default function EvalPage() {
                                         type="checkbox" 
                                         checked={randomSample}
                                         onChange={e => setRandomSample(e.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-[var(--accent)] focus:ring-[var(--accent)]"
+                                        className="h-4 w-4 rounded border-[var(--border-primary)] text-[var(--accent)] focus:ring-[var(--accent)]"
                                     />
                                     Random Sample
                                 </label>
@@ -204,7 +204,7 @@ export default function EvalPage() {
                     {isLoading ? (
                         <div className="text-center text-[var(--text-muted)] text-sm animate-pulse py-10">Loading sessions...</div>
                     ) : error ? (
-                        <div className="text-red-400 text-sm py-4">{error}</div>
+                        <div className="text-[var(--danger)] text-sm py-4">{error}</div>
                     ) : sessions.length === 0 ? (
                         <div className="text-center text-[var(--text-muted)] text-sm py-10">No sessions found.</div>
                     ) : (
@@ -236,9 +236,9 @@ export default function EvalPage() {
                                                 </a>
                                             )}
                                             <div className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest ${
-                                                s.status === 'done' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 
-                                                s.status === 'running' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
-                                                'bg-gray-500/10 text-[var(--text-muted)] border border-gray-500/20'
+                                                s.status === 'done' ? 'bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-border)]' : 
+                                                s.status === 'running' ? 'bg-[var(--info-soft)] text-[var(--info)] border border-[var(--info-border)]' : 
+                                                'bg-[var(--surface-container)] text-[var(--text-muted)] border border-[var(--border-primary)]'
                                             }`}>
                                                 {s.status}
                                             </div>

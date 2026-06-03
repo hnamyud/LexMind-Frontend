@@ -126,8 +126,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
                             width: 32,
                             height: 32,
                             borderRadius: "50%",
-                            border: "2px solid rgba(0,242,255,0.15)",
-                            borderTop: "2px solid #00f2ff",
+                            border: "2px solid var(--accent-soft)",
+                            borderTop: "2px solid var(--md-sys-color-primary)",
                             animation: "spin 0.8s linear infinite",
                         }}
                     />

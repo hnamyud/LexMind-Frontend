@@ -8,7 +8,7 @@ import { Slide5CTA } from "./Slide5CTA";
 
 export const LexMindPresentation: React.FC = () => {
   return (
-    <AbsoluteFill style={{ backgroundColor: "#050505" }}>
+    <AbsoluteFill style={{ backgroundColor: "#f7f9fc" }}>
       <Sequence from={0} durationInFrames={300}>
         <Slide1Pain />
       </Sequence>

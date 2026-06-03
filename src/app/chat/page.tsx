@@ -131,6 +131,43 @@ function compactLawSourceLabel(source: Source): string {
     return normalized || fallback;
 }
 
+const WELCOME_SUGGESTIONS = [
+    {
+        icon: "gavel",
+        title: "Tra cứu mức phạt",
+        description: "Hỏi mức phạt, căn cứ điều khoản và tình tiết tăng nặng giảm nhẹ.",
+        prompt: "Mức phạt đối với hành vi điều khiển xe máy đi vào đường cao tốc là gì? Vui lòng nêu rõ căn cứ điều, khoản, điểm.",
+    },
+    {
+        icon: "account_tree",
+        title: "Lần theo căn cứ luật",
+        description: "Yêu cầu LexMind giải thích lập luận và liên kết giữa các điều khoản liên quan.",
+        prompt: "Hãy giải thích mối liên hệ giữa hành vi vi phạm, mức phạt và hình phạt bổ sung trong Nghị định 168/2024.",
+    },
+    {
+        icon: "rule",
+        title: "So sánh tình huống",
+        description: "Đặt hai tình huống cạnh nhau để thấy sự khác nhau về căn cứ và chế tài.",
+        prompt: "So sánh lỗi đi vào đường cao tốc với lỗi đi vào đường cấm: căn cứ pháp lý và mức phạt khác nhau thế nào?",
+    },
+    {
+        icon: "note_stack",
+        title: "Tóm tắt văn bản",
+        description: "Tóm tắt nhanh một điều luật, nghị định hoặc một nhóm quy định cho người mới.",
+        prompt: "Tóm tắt cho tôi các quy định quan trọng của Nghị định 168/2024 liên quan đến xe máy trong ngôn ngữ dễ hiểu.",
+    },
+];
+
+function getUserDisplayName(user: ReturnType<typeof useAuthStore.getState>["user"]): string {
+    const fullName = user?.full_name;
+    const camelFullName = user?.fullName;
+
+    if (typeof fullName === "string" && fullName.trim()) return fullName.trim();
+    if (typeof camelFullName === "string" && camelFullName.trim()) return camelFullName.trim();
+    if (typeof user?.name === "string" && user.name.trim()) return user.name.trim();
+    return user?.email?.split("@")[0] || "bạn";
+}
+
 // ─── Strip leading emoji from process text ────────────────────────────────────
 function stripEmoji(text: string): string {
     return text.replace(/^[^\w\sđĐ]+\s*/, '');
@@ -175,7 +212,7 @@ function LawRefText({ text, onLawClick }: { text: string; onLawClick?: (nodeId: 
                     key={`law-${match.index}`}
                     type="button"
                     onClick={(e) => { e.preventDefault(); onLawClick(nodeId); }}
-                    className="inline-flex items-center px-1.5 py-0.5 mx-0.5 rounded bg-[var(--accent-soft)] border border-[var(--accent-border)] text-[var(--accent)] hover:bg-[var(--accent-border)] transition-all cursor-pointer text-[12px] font-medium leading-snug align-baseline text-left"
+                    className="mx-0.5 inline-flex cursor-pointer items-center rounded-full border border-[var(--legal-border)] bg-[var(--legal-soft)] px-2 py-0.5 align-baseline text-left text-[12px] font-medium leading-snug text-[var(--legal)] shadow-sm transition-all hover:-translate-y-px hover:bg-[var(--bg-secondary)] hover:shadow-[var(--shadow-bubble)] focus:outline-none focus:ring-2 focus:ring-[var(--legal-border)]"
                     title={`Tra cứu: ${innerText}`}
                 >
                     {innerText}
@@ -226,7 +263,7 @@ function StepIndicator({ steps }: { steps: MessageStep[] }) {
         <div className="mb-2 space-y-1">
             {steps.map((s, idx) => (
                 <div key={`ind-${s.step}-${idx}`} className="flex items-center gap-1.5 animate-pulse-once">
-                    <span className="text-[10px] text-gray-600 font-mono">{s.label}</span>
+                    <span className="text-[10px] text-[var(--text-faint)] font-mono">{s.label}</span>
                 </div>
             ))}
         </div>
@@ -251,7 +288,7 @@ function CopyButton({ text, className, label }: { text: string; className?: stri
     return (
         <button
             onClick={handleCopy}
-            className={className || "text-[11px] text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"}
+            className={className || "text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1"}
             title="Sao chép"
             type="button"
         >
@@ -284,7 +321,7 @@ function ThinkingBlock({
         <div className="mb-3">
             <button
                 onClick={() => setExpanded((v) => !v)}
-                className="flex items-center gap-1.5 text-[10px] text-gray-600 hover:text-gray-400 transition-colors select-none"
+                className="flex items-center gap-1.5 text-[10px] text-[var(--text-faint)] hover:text-[var(--text-muted)] transition-colors select-none"
             >
                 {/* Brain icon */}
                 <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,11 +342,11 @@ function ThinkingBlock({
             </button>
 
             {(expanded || streaming) && (
-                <div className="mt-1.5 pl-3 border-l border-gray-800 max-h-48 overflow-y-auto">
-                    <p className="text-[11px] text-gray-600 leading-relaxed whitespace-pre-wrap font-mono">
+                <div className="mt-1.5 pl-3 border-l border-[var(--border-subtle)] max-h-48 overflow-y-auto">
+                    <p className="text-[11px] text-[var(--text-faint)] leading-relaxed whitespace-pre-wrap font-mono">
                         {content}
                         {streaming && (
-                            <span className="inline-block w-1.5 h-3 bg-gray-600 ml-0.5 animate-pulse align-middle" />
+                            <span className="inline-block w-1.5 h-3 bg-[var(--text-faint)] ml-0.5 animate-pulse align-middle" />
                         )}
                     </p>
                 </div>
@@ -496,7 +533,7 @@ function AiMessage({
                     )}
 
                     {/* Error */}
-                    {msg.error && <p className="text-xs text-red-400 mt-2">{msg.error}</p>}
+                    {msg.error && <p className="text-xs text-[var(--danger)] mt-2">{msg.error}</p>}
 
                     {/* Sources */}
                     {isDone && (kgSources.length > 0 || webSources.length > 0) && (
@@ -516,8 +553,7 @@ function AiMessage({
                                                     key={`src-${src.id}-${idx}`}
                                                     type="button"
                                                     onClick={() => onLawClick?.(src.id!)}
-                                                    className="inline-flex max-w-full items-center gap-1.5 rounded px-2 py-0.5 text-[10px] font-mono leading-5 transition-all cursor-pointer hover:opacity-80"
-                                                    style={{ border: '1px solid var(--accent-border)', color: 'var(--accent)', backgroundColor: 'var(--accent-soft)' }}
+                                                    className="inline-flex max-w-full cursor-pointer items-center gap-1.5 rounded-full border border-[var(--legal-border)] bg-[var(--legal-soft)] px-2.5 py-1 text-[10px] font-medium leading-5 text-[var(--legal)] shadow-sm transition-all hover:-translate-y-px hover:bg-[var(--bg-secondary)] hover:shadow-[var(--shadow-bubble)] focus:outline-none focus:ring-2 focus:ring-[var(--legal-border)]"
                                                     title={`Tra cứu: ${fullLabel}`}
                                                 >
                                                     <span className="truncate">{label}</span>
@@ -534,7 +570,7 @@ function AiMessage({
                             )}
                             {webSources.length > 0 && (
                                 <div className={kgSources.length > 0 ? 'mt-3' : ''}>
-                                    <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                    <p className="text-[10px] text-[var(--text-faint)] uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                                         </svg>
@@ -550,9 +586,9 @@ function AiMessage({
                                                     href={src.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="group/link flex items-center gap-2 px-2.5 py-1.5 rounded border border-gray-700/60 hover:border-brand/40 bg-gray-900/40 hover:bg-brand/5 transition-all text-[11px] text-gray-400 hover:text-brand"
+                                                    className="group/link flex items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface-container)] px-2.5 py-1.5 text-[11px] text-[var(--text-muted)] transition-all hover:border-[var(--accent-border)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
                                                 >
-                                                    <svg className="w-3.5 h-3.5 shrink-0 text-gray-600 group-hover/link:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-3.5 h-3.5 shrink-0 text-[var(--text-faint)] transition-colors group-hover/link:text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                     </svg>
                                                     <span className="font-mono" title={src.url}>{hostname}</span>
@@ -571,7 +607,7 @@ function AiMessage({
             <div className="flex items-center gap-3 ml-1 mt-1">
                 <span className="text-xs uppercase tracking-widest font-bold" style={{ color: 'var(--accent)' }}>LexMind</span>
                 {msg.queryMode && (
-                    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm border border-gray-700/50 bg-gray-800/30 text-gray-400">
+                    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-sm border border-[var(--border-subtle)] bg-[var(--surface-container)] text-[var(--text-muted)]">
                         {msg.queryMode === 'penalty_lookup' ? 'Tra cứu xử phạt' : msg.queryMode === 'provision_lookup' ? 'Tra cứu quy định' : msg.queryMode}
                     </span>
                 )}
@@ -580,7 +616,7 @@ function AiMessage({
                         {onLike && (
                             <button
                                 onClick={() => { setLocalFeedback('like'); onLike(msg.id); }}
-                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'like' ? 'text-brand' : 'text-gray-500 hover:text-gray-300'}`}
+                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'like' ? 'text-[var(--success)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                                 title="Thích câu trả lời này"
                             >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -591,7 +627,7 @@ function AiMessage({
                         {onDislike && (
                             <button
                                 onClick={() => { setLocalFeedback('dislike'); onDislike(msg.id); }}
-                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'dislike' ? 'text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
+                                className={`text-[11px] transition-colors flex items-center gap-1 ${localFeedback === 'dislike' ? 'text-[var(--danger)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                                 title="Không thích câu trả lời này"
                             >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -676,6 +712,7 @@ function ChatPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { accessToken } = useAuthStore();
+    const user = useAuthStore((s) => s.user);
     const hasHydrated = useAuthHasHydrated();
     const { setActiveId, addConversation } = useConversationStore();
     const chatStreamRef = useRef<HTMLDivElement>(null);
@@ -1141,20 +1178,40 @@ function ChatPageInner() {
     }, []);
 
     const showHero = messages.length === 0;
+    const displayName = getUserDisplayName(user);
 
     return (
         <main className="flex-1 flex flex-col relative overflow-hidden h-full">
             {/* Hero Section – chỉ hiện khi chưa có messages */}
             {showHero && (
-                <div className="flex flex-col items-center justify-center py-8 px-6 md:py-12 md:px-6">
-                    <div className="w-full max-w-2xl text-center">
-                        <h1 className="typing-effect text-xl sm:text-2xl md:text-4xl font-bold tracking-tight break-words" style={{ color: 'var(--text-primary)' }}>
-                            LexMind: Advanced Legal Intelligence.
+                <div className="mx-auto w-full max-w-5xl px-4 py-10 md:px-6 md:py-14">
+                    <div className="mx-auto max-w-3xl text-center">
+                        <h1 className="text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl md:text-5xl">
+                            Đến lượt {displayName} rồi.
                         </h1>
+                        <p className="mt-4 px-2 text-sm leading-7 text-[var(--text-muted)] md:text-base">
+                            LexMind phù hợp nhất cho tra cứu quy định, đối chiếu căn cứ điều khoản, và giải thích tình huống pháp lý theo nguồn luật hiện có trong hệ thống.
+                        </p>
                     </div>
-                    <p className="mt-4 text-sm md:text-base font-medium text-center px-2" style={{ color: 'var(--text-muted)' }}>
-                        Sophisticated legal reasoning at your fingertips.
-                    </p>
+
+                    <div className="mx-auto mt-8 grid max-w-4xl gap-4 sm:grid-cols-2">
+                        {WELCOME_SUGGESTIONS.map((item) => (
+                            <button
+                                key={item.title}
+                                type="button"
+                                onClick={() => handleSend(item.prompt)}
+                                className="md3-panel flex min-h-[148px] flex-col items-start rounded-[24px] p-5 text-left shadow-[var(--shadow-bubble)] transition-all hover:-translate-y-0.5 hover:border-[var(--accent-border)] hover:bg-[var(--surface-container-low)]"
+                            >
+                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--accent-soft)] text-[var(--accent)]">
+                                    <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                                </div>
+                                <h2 className="mt-4 text-base font-semibold text-[var(--text-primary)]">{item.title}</h2>
+                                <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                                    {item.description}
+                                </p>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -1166,7 +1223,7 @@ function ChatPageInner() {
             >
                 {isLoadingHistory ? (
                     <div className="flex justify-center py-10">
-                        <span className="text-gray-500 animate-pulse text-sm tracking-widest uppercase">Đang tải lịch sử...</span>
+                        <span className="text-[var(--text-muted)] animate-pulse text-sm tracking-widest uppercase">Đang tải lịch sử...</span>
                     </div>
                 ) : (
                     <>
@@ -1234,7 +1291,7 @@ export default function ChatPage() {
     return (
         <Suspense fallback={
             <main className="flex-1 flex items-center justify-center">
-                <span className="text-gray-600 animate-pulse text-sm tracking-widest uppercase">Đang tải...</span>
+                <span className="text-[var(--text-faint)] animate-pulse text-sm tracking-widest uppercase">Đang tải...</span>
             </main>
         }>
             <ChatPageInner />

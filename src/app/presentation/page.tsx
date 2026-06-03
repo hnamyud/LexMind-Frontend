@@ -1,56 +1,49 @@
 "use client";
 
+import Link from "next/link";
 import { Player } from "@remotion/player";
 import { LexMindPresentation } from "@/components/presentation/LexMindPresentation";
-import Link from "next/link";
 
 export default function PresentationPage() {
   return (
-    <div style={{ backgroundColor: "#050505", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-      {/* Close button returning to home */}
-      <Link
-        href="/"
-        style={{
-          position: "absolute",
-          top: "40px",
-          left: "40px",
-          color: "#fff",
-          fontSize: "48px",
-          fontWeight: "300",
-          cursor: "pointer",
-          zIndex: 50,
-          background: "transparent",
-          border: "none",
-          width: "60px",
-          height: "60px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = "#00f2ff"; e.currentTarget.style.transform = "scale(1.1)" }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "scale(1)" }}
-      >
-        ×
-      </Link>
+    <div className="min-h-screen bg-[var(--bg-primary)] px-5 py-6 text-[var(--text-primary)] md:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col gap-5">
+        <header className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-primary)] bg-[var(--bg-secondary)] text-2xl text-[var(--text-secondary)] shadow-[var(--shadow-bubble)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+            aria-label="Quay lại trang chủ"
+          >
+            ×
+          </Link>
+          <div className="rounded-full border border-[var(--accent-border)] bg-[var(--accent-soft)] px-4 py-2 text-sm font-medium text-[var(--accent)]">
+            LexMind demo video
+          </div>
+        </header>
 
-      <Player
-        component={LexMindPresentation}
-        durationInFrames={300 + 300 + 300 + 390 + 210} // Slide 1 (10s) + Slide 2 (10s) + Slide 3 (10s) + Slide 4 (13s) + Slide 5 (7s)
-        compositionWidth={1920}
-        compositionHeight={1080}
-        fps={30}
-        style={{
-          width: "100%",
-          maxWidth: "1280px",
-          aspectRatio: "16 / 9",
-          borderRadius: "12px",
-          boxShadow: "0 0 50px rgba(0,242,255,0.15)"
-        }}
-        controls
-        autoPlay
-      />
+        <main className="flex flex-1 items-center justify-center">
+          <div className="w-full overflow-hidden rounded-[32px] border border-[var(--border-primary)] bg-[var(--surface-glass)] p-3 shadow-[var(--shadow-panel)] backdrop-blur-xl md:p-4">
+            <Player
+              component={LexMindPresentation}
+              durationInFrames={1500}
+              compositionWidth={1920}
+              compositionHeight={1080}
+              fps={30}
+              acknowledgeRemotionLicense
+              style={{
+                width: "100%",
+                aspectRatio: "16 / 9",
+                borderRadius: "24px",
+                overflow: "hidden",
+                backgroundColor: "var(--bg-primary)",
+              }}
+              controls
+              autoPlay
+              loop
+            />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

@@ -14,10 +14,10 @@ interface Toast extends AppNotificationDetail {
 }
 
 const variantStyles: Record<AppNotificationVariant, { icon: string; accent: string; bg: string }> = {
-    info: { icon: "info", accent: "#38bdf8", bg: "rgba(56, 189, 248, 0.12)" },
-    success: { icon: "check_circle", accent: "#22c55e", bg: "rgba(34, 197, 94, 0.12)" },
-    warning: { icon: "warning", accent: "#f59e0b", bg: "rgba(245, 158, 11, 0.12)" },
-    error: { icon: "error", accent: "#ef4444", bg: "rgba(239, 68, 68, 0.12)" },
+    info: { icon: "info", accent: "var(--info)", bg: "var(--info-soft)" },
+    success: { icon: "check_circle", accent: "var(--success)", bg: "var(--success-soft)" },
+    warning: { icon: "warning", accent: "var(--warning)", bg: "var(--warning-soft)" },
+    error: { icon: "error", accent: "var(--danger)", bg: "var(--danger-soft)" },
 };
 
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
@@ -65,7 +65,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
                     return (
                         <div
                             key={toast.id}
-                            className="pointer-events-auto rounded-lg border p-3 shadow-2xl backdrop-blur-xl"
+                            className="pointer-events-auto rounded-[20px] border p-3 shadow-[var(--shadow-panel)] backdrop-blur-xl"
                             style={{
                                 backgroundColor: "color-mix(in srgb, var(--bg-secondary) 88%, transparent)",
                                 borderColor: "var(--border-primary)",

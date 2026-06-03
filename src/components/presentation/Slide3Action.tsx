@@ -1,102 +1,99 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig, Audio } from "remotion";
+import { AbsoluteFill, Audio, interpolate, useCurrentFrame } from "remotion";
+import { colors, sceneStyle, slideUp, surfaceStyle } from "./theme";
 
-const QUESTION = "Mức phạt vượt đèn đỏ đối với xe máy là gì?";
+const QUESTION = "Xe máy vượt đèn đỏ bị phạt thế nào?";
+
+const graphNodes = [
+  { label: "Hành vi", x: 250, y: 390, color: colors.secondary, frame: 54 },
+  { label: "Vượt đèn đỏ", x: 540, y: 210, color: colors.primary, frame: 70 },
+  { label: "Xe máy", x: 820, y: 500, color: colors.secondary, frame: 86 },
+  { label: "Mức phạt", x: 1120, y: 260, color: colors.success, frame: 104 },
+  { label: "Trừ điểm", x: 1430, y: 560, color: colors.tertiary, frame: 124 },
+];
 
 export const Slide3Action: React.FC = () => {
   const frame = useCurrentFrame();
-
-  // Typing effect
-  const charsToShow = Math.floor(interpolate(frame, [20, 120], [0, QUESTION.length], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
-  const visibleText = QUESTION.substring(0, charsToShow);
-
-  const graphNodes = [
-    { id: 1, label: "Người điều khiển", x: 250, y: 350, popFrame: 40 },
-    { id: 2, label: "Vượt đèn đỏ", x: 500, y: 150, popFrame: 50 },
-    { id: 3, label: "Xe máy", x: 750, y: 550, popFrame: 70 },
-    { id: 4, label: "Phạt tiền", x: 1050, y: 250, popFrame: 80 },
-    { id: 5, label: "Trừ 4 điểm", x: 1350, y: 600, popFrame: 100 },
-    { id: 6, label: "Gây tai nạn", x: 1650, y: 350, popFrame: 130 },
-  ];
+  const chars = Math.floor(interpolate(frame, [22, 112], [0, QUESTION.length], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
+  const visibleText = QUESTION.slice(0, chars);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#050505", padding: "80px" }}>
+    <AbsoluteFill style={{ ...sceneStyle, padding: 86 }}>
       <Audio src="/presentation/audio/slide_3.mp3" />
-      {/* 
-        This div simulates the chat input or question bubble 
-      */}
-      <div
-        style={{
-          width: "100%", maxWidth: "1200px", margin: "0 auto",
-          padding: "40px",
-          backgroundColor: "rgba(0, 242, 255, 0.05)",
-          border: "2px solid rgba(0, 242, 255, 0.3)",
-          borderRadius: "30px",
-          fontSize: "48px",
-          color: "#e2e8f0",
-          fontFamily: "system-ui, sans-serif",
-          boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-          height: "150px", display: "flex", alignItems: "center"
-        }}
-      >
-        {visibleText}
-        {frame % 30 < 15 && <span style={{ width: "6px", height: "50px", backgroundColor: "#00f2ff", marginLeft: "10px", display: "inline-block" }} />}
+
+      <div style={{ ...slideUp(frame, 8), color: colors.primary, fontSize: 24, fontWeight: 800 }}>
+        Demo luồng tra cứu
       </div>
 
-      <div style={{ position: "relative", flex: 1, marginTop: "60px", overflow: "hidden" }}>
-        {/* Simple Node Graph */}
-        <svg width="100%" height="100%">
-          {/* Draw edges first */}
-          {graphNodes.map((n, i) => {
-            if (i === 0) return null;
-            const prev = graphNodes[i - 1];
+      <div style={{ display: "grid", gridTemplateColumns: "0.9fr 1.1fr", gap: 60, height: "100%", alignItems: "center" }}>
+        <div style={{ ...slideUp(frame, 18) }}>
+          <h1 style={{ margin: 0, fontSize: 82, lineHeight: 1.04, letterSpacing: "-0.03em", fontWeight: 800 }}>
+            Nhập tình huống tự nhiên.
+          </h1>
+          <p style={{ marginTop: 24, fontSize: 30, lineHeight: 1.45, color: colors.muted }}>
+            LexMind tự nhận diện hành vi, phương tiện, mức phạt và căn cứ điều khoản liên quan.
+          </p>
 
-            // Connecting edge appears at the popFrame of the target node
-            const edgeOpacity = interpolate(frame, [n.popFrame, n.popFrame + 10], [0, 1], { extrapolateRight: "clamp" });
+          <div
+            style={{
+              ...surfaceStyle,
+              marginTop: 46,
+              borderRadius: 999,
+              padding: "28px 34px",
+              display: "flex",
+              alignItems: "center",
+              gap: 20,
+              minHeight: 94,
+            }}
+          >
+            <div style={{ width: 36, height: 36, borderRadius: 99, display: "grid", placeItems: "center", background: colors.primaryContainer, color: colors.primary, fontSize: 30 }}>+</div>
+            <div style={{ fontSize: 30, color: colors.text, flex: 1 }}>
+              {visibleText}
+              {chars < QUESTION.length && <span style={{ display: "inline-block", width: 4, height: 34, marginLeft: 8, background: colors.primary }} />}
+            </div>
+            <div style={{ width: 48, height: 48, borderRadius: 99, background: colors.primary, color: "#fff", display: "grid", placeItems: "center", fontSize: 22, fontWeight: 900 }}>
+              ↑
+            </div>
+          </div>
+        </div>
 
-            return (
-              <line
-                key={`e-${n.id}`}
-                x1={prev.x} y1={prev.y}
-                x2={n.x} y2={n.y}
-                stroke="rgba(0, 242, 255, 0.3)"
-                strokeWidth={4}
-                opacity={edgeOpacity}
-              />
-            )
-          })}
+        <div style={{ ...surfaceStyle, ...slideUp(frame, 46), height: 690, borderRadius: 42, padding: 32, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 28, left: 32, zIndex: 5, display: "flex", gap: 10 }}>
+            {[
+              ["Điều khoản", colors.tertiary],
+              ["Mức phạt", colors.success],
+              ["Vi phạm", colors.secondary],
+            ].map(([label, color]) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 999, padding: "8px 12px", background: colors.surfaceHigh, color: colors.muted, fontSize: 16 }}>
+                <span style={{ width: 9, height: 9, borderRadius: 99, background: color }} />
+                {label}
+              </div>
+            ))}
+          </div>
 
-          {/* Draw nodes */}
-          {graphNodes.map((n) => {
-            const scale = interpolate(frame, [n.popFrame, n.popFrame + 15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+          <svg width="100%" height="100%" viewBox="0 0 1600 700">
+            {graphNodes.map((node, index) => {
+              if (index === 0) return null;
+              const prev = graphNodes[index - 1];
+              const p = interpolate(frame, [node.frame - 8, node.frame + 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+              return <line key={`edge-${node.label}`} x1={prev.x} y1={prev.y} x2={node.x} y2={node.y} stroke={colors.primaryBright} strokeWidth={5} opacity={p * 0.32} />;
+            })}
 
-            // Pulse effect when popped
-            const popEffect = interpolate(frame - n.popFrame, [0, 10, 20], [1, 1.3, 1], { extrapolateRight: "clamp" });
-            const finalScale = scale > 0 ? scale * popEffect : 0;
-            const activeColor = frame >= n.popFrame + 20 ? "#00f2ff" : "#fff";
-
-            return (
-              <g key={n.id} transform={`translate(${n.x}, ${n.y}) scale(${finalScale})`} opacity={scale}>
-                {/* Outer Glow */}
-                <circle r="60" fill="rgba(0,242,255,0.15)" />
-                {/* Main Node */}
-                <circle r="40" fill="#0c0c12" stroke={activeColor} strokeWidth={4} />
-                <text
-                  y={70}
-                  textAnchor="middle"
-                  fill={activeColor}
-                  fontFamily="system-ui"
-                  fontSize="24px"
-                  fontWeight="bold"
-                >
-                  {n.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+            {graphNodes.map((node) => {
+              const p = interpolate(frame, [node.frame, node.frame + 16], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+              return (
+                <g key={node.label} transform={`translate(${node.x}, ${node.y}) scale(${p})`} opacity={p}>
+                  <circle r={70} fill={node.color} opacity={0.16} />
+                  <circle r={46} fill={node.color} />
+                  <text y={90} textAnchor="middle" fill={colors.text} fontFamily="system-ui" fontSize={30} fontWeight={760}>
+                    {node.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
       </div>
-
     </AbsoluteFill>
   );
 };

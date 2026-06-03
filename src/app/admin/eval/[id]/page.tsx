@@ -49,7 +49,7 @@ export default function EvalScorePage({ params }: { params: Promise<{ id: string
     }
 
     if (error || !session) {
-        return <div className="text-red-400 p-10">{error || "Session not found."}</div>;
+        return <div className="text-[var(--danger)] p-10">{error || "Session not found."}</div>;
     }
 
     return (
@@ -126,10 +126,10 @@ export default function EvalScorePage({ params }: { params: Promise<{ id: string
                                 <td className="px-4 py-3 font-mono text-xs">
                                     {run.scored_at ? (
                                         <div className="flex gap-2">
-                                           <span className={run.score_correctness ? "text-green-500" : "text-red-500"}>{run.score_correctness ? "PASS" : "FAIL"}</span> /
-                                           <span className={run.score_groundedness ? "text-green-500" : "text-red-500"}>{run.score_groundedness ? "PASS" : "FAIL"}</span> /
-                                           <span className={run.score_behavior ? "text-green-500" : "text-red-500"}>{run.score_behavior ? "PASS" : "FAIL"}</span> /
-                                           <span className={run.score_citation ? "text-green-500" : "text-red-500"}>{run.score_citation ? "PASS" : "FAIL"}</span>
+                                           <span className={run.score_correctness ? "text-[var(--success)]" : "text-[var(--danger)]"}>{run.score_correctness ? "PASS" : "FAIL"}</span> /
+                                           <span className={run.score_groundedness ? "text-[var(--success)]" : "text-[var(--danger)]"}>{run.score_groundedness ? "PASS" : "FAIL"}</span> /
+                                           <span className={run.score_behavior ? "text-[var(--success)]" : "text-[var(--danger)]"}>{run.score_behavior ? "PASS" : "FAIL"}</span> /
+                                           <span className={run.score_citation ? "text-[var(--success)]" : "text-[var(--danger)]"}>{run.score_citation ? "PASS" : "FAIL"}</span>
                                         </div>
                                     ) : (
                                         <span className="text-[var(--text-muted)] italic">Pending</span>
@@ -179,10 +179,10 @@ export default function EvalScorePage({ params }: { params: Promise<{ id: string
                                         <p className="text-sm font-semibold text-[var(--text-primary)]">{targetRun.question}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-green-500 uppercase tracking-widest font-bold mb-1 border-b border-[var(--border-primary)] pb-1">Ground Truth</p>
+                                        <p className="text-[10px] text-[var(--success)] uppercase tracking-widest font-bold mb-1 border-b border-[var(--border-primary)] pb-1">Ground Truth</p>
                                         <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">{targetRun.ground_truth}</p>
                                         <div className="flex gap-1 flex-wrap mt-2">
-                                            {targetRun.reference_nodes?.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-green-500/10 text-green-500 border border-green-500/20 rounded">{n}</span>)}
+                                            {targetRun.reference_nodes?.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-[var(--success-soft)] text-[var(--success)] border border-[var(--success-border)] rounded">{n}</span>)}
                                         </div>
                                     </div>
                                     <div>
@@ -215,9 +215,9 @@ export default function EvalScorePage({ params }: { params: Promise<{ id: string
                                                 {val === null ? (
                                                     <span className="text-xs text-[var(--text-muted)] italic">N/A</span>
                                                 ) : val === true ? (
-                                                    <span className="text-xs font-bold px-2 py-1 bg-green-500/20 text-green-500 rounded uppercase tracking-widest">PASS</span>
+                                                    <span className="text-xs font-bold px-2 py-1 bg-[var(--success-soft)] text-[var(--success)] rounded uppercase tracking-widest">PASS</span>
                                                 ) : (
-                                                    <span className="text-xs font-bold px-2 py-1 bg-red-500/20 text-red-500 rounded uppercase tracking-widest">FAIL</span>
+                                                    <span className="text-xs font-bold px-2 py-1 bg-[var(--danger-soft)] text-[var(--danger)] rounded uppercase tracking-widest">FAIL</span>
                                                 )}
                                             </div>
                                         );
@@ -232,13 +232,13 @@ export default function EvalScorePage({ params }: { params: Promise<{ id: string
                                             <div>
                                                 <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">Missing Nodes:</span>
                                                 <div className="flex flex-wrap gap-1 mt-1">
-                                                    {targetRun.retrieval_missing?.length ? targetRun.retrieval_missing.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-red-500/10 text-red-500 border border-red-500/20 rounded">{n}</span>) : <span className="text-[10px] text-[var(--text-muted)]">None</span>}
+                                                    {targetRun.retrieval_missing?.length ? targetRun.retrieval_missing.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] rounded">{n}</span>) : <span className="text-[10px] text-[var(--text-muted)]">None</span>}
                                                 </div>
                                             </div>
                                             <div>
                                                 <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">Extra Nodes:</span>
                                                 <div className="flex flex-wrap gap-1 mt-1">
-                                                    {targetRun.retrieval_extra?.length ? targetRun.retrieval_extra.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded">{n}</span>) : <span className="text-[10px] text-[var(--text-muted)]">None</span>}
+                                                    {targetRun.retrieval_extra?.length ? targetRun.retrieval_extra.map(n => <span key={n} className="text-[9px] font-mono px-1.5 py-0.5 bg-[var(--warning-soft)] text-[var(--warning)] border border-[var(--warning-border)] rounded">{n}</span>) : <span className="text-[10px] text-[var(--text-muted)]">None</span>}
                                                 </div>
                                             </div>
                                         </div>

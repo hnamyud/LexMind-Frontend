@@ -11,7 +11,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark",
+  theme: "light",
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -21,17 +21,16 @@ export function useTheme() {
 }
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "light";
+    const stored = localStorage.getItem("lexmind-theme");
+    return stored === "dark" || stored === "light" ? stored : "light";
+  });
 
-  // Hydrate from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("lexmind-theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-      document.documentElement.classList.toggle("dark", stored === "dark");
-      document.documentElement.classList.toggle("light", stored === "light");
-    }
-  }, []);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.toggle("light", theme === "light");
+  }, [theme]);
 
   const setTheme = useCallback((t: Theme) => {
     setThemeState(t);

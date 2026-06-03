@@ -1,66 +1,52 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, spring, useVideoConfig, Audio } from "remotion";
-import StarryBackground from "@/components/home/StarryBackground";
-import { useRouter } from "next/navigation";
+import { AbsoluteFill, Audio, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { colors, sceneStyle, slideUp } from "./theme";
 
 export const Slide5CTA: React.FC = () => {
-  const router = useRouter();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-
-  const bgOpacity = interpolate(frame, [0, 30], [0, 1], { extrapolateRight: "clamp" });
-
-  const buttonScale = spring({
-    frame: Math.max(0, frame - 45),
-    fps,
-    config: { damping: 12 }
-  });
-
-  const flareOpacity = interpolate(frame, [45, 60, 90, 150], [0, 1, 0.8, 1], { extrapolateRight: "clamp" });
+  const button = spring({ frame: Math.max(0, frame - 40), fps, config: { damping: 14 } });
+  const glow = interpolate(frame, [35, 80, 150, 210], [0, 1, 0.72, 1], { extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000", opacity: bgOpacity }}>
+    <AbsoluteFill style={{ ...sceneStyle, justifyContent: "center", alignItems: "center", textAlign: "center", padding: 96 }}>
       <Audio src="/presentation/audio/slide_5.mp3" />
-      {/* Starry Universe Background */}
-      <StarryBackground />
 
-      <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", zIndex: 10 }}>
-        {/* Glowing flare behind the button */}
+      <div style={{ position: "absolute", width: 860, height: 360, borderRadius: 999, background: colors.primaryContainer, filter: "blur(70px)", opacity: glow * 0.9 }} />
+
+      <div style={{ ...slideUp(frame, 14), position: "relative", zIndex: 2 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 12, borderRadius: 999, padding: "12px 22px", background: colors.primaryContainer, color: colors.primary, fontSize: 22, fontWeight: 800 }}>
+          <span style={{ width: 12, height: 12, borderRadius: 99, background: colors.primary }} />
+          Material 3 · Legal-first AI
+        </div>
+
+        <h1 style={{ margin: "34px auto 0", maxWidth: 1120, fontSize: 92, lineHeight: 1.03, letterSpacing: "-0.035em", fontWeight: 840 }}>
+          Demo LexMind trong một luồng sáng, rõ và có căn cứ.
+        </h1>
+        <p style={{ margin: "26px auto 0", maxWidth: 860, color: colors.muted, fontSize: 30, lineHeight: 1.45 }}>
+          Từ câu hỏi tự nhiên đến câu trả lời có citation, graph và admin workflow.
+        </p>
+
         <div
           style={{
-            position: "absolute",
-            width: "400px",
-            height: "150px",
-            background: "radial-gradient(ellipse at center, rgba(0,242,255,0.4) 0%, transparent 70%)",
-            opacity: flareOpacity,
-            transform: `scale(${buttonScale})`
-          }}
-        />
-
-        <div
-          onClick={(e) => {
-            e.stopPropagation(); // prevent remotion player from pausing
-            router.push("/chat");
-          }}
-          style={{
-            transform: `scale(${buttonScale})`,
-            padding: "24px 64px",
-            borderRadius: "12px",
-            backgroundColor: "#00f2ff",
-            color: "#000",
-            fontSize: "42px",
-            fontWeight: "bold",
-            textTransform: "uppercase",
-            letterSpacing: "0.15em",
-            boxShadow: "0 0 60px rgba(0,242,255,0.6)",
-            fontFamily: "system-ui, sans-serif",
-            cursor: "pointer",
-            pointerEvents: "auto"
+            margin: "48px auto 0",
+            transform: `scale(${button})`,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 16,
+            padding: "24px 44px",
+            borderRadius: 999,
+            background: colors.primary,
+            color: "#fff",
+            fontSize: 32,
+            fontWeight: 820,
+            boxShadow: "0 24px 50px rgba(15,108,122,0.28)",
           }}
         >
-          Bắt đầu ngay
+          Bắt đầu tra cứu
+          <span style={{ fontSize: 34 }}>→</span>
         </div>
-      </AbsoluteFill>
+      </div>
     </AbsoluteFill>
   );
 };

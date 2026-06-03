@@ -49,8 +49,8 @@ export default function AdminConversationsPage() {
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Quản lý hội thoại</h1>
-                    <p className="text-xs text-[var(--text-muted)] font-mono mt-1">Tổng: {total.toLocaleString()} hội thoại</p>
+                    <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Quản lý hội thoại</h1>
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">Tổng: {total.toLocaleString()} hội thoại</p>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-[var(--text-muted)]">
                     <input
@@ -59,7 +59,7 @@ export default function AdminConversationsPage() {
                         onChange={(e) => { setNegativeOnly(e.target.checked); setPage(1); }}
                         className="accent-[var(--accent)]"
                     />
-                    <span className="font-mono">Chỉ hiện dislike</span>
+                    <span>Chỉ hiện dislike</span>
                 </label>
             </div>
 
@@ -92,7 +92,7 @@ export default function AdminConversationsPage() {
                                         <td className="px-4 py-3 text-[var(--text-secondary)] font-mono">{c.avgResponseTime ? `${(c.avgResponseTime / 1000).toFixed(1)}s` : "—"}</td>
                                         <td className="px-4 py-3">
                                             {c.hasNegativeFeedback && (
-                                                <span className="text-[10px] bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full font-mono">Có</span>
+                                                <span className="text-[10px] bg-[var(--danger-soft)] text-[var(--danger)] border border-[var(--danger-border)] px-2 py-0.5 rounded-full font-mono">Có</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3 text-[var(--text-muted)] font-mono text-[10px]">{new Date(c.createdAt).toLocaleDateString("vi-VN")}</td>
@@ -154,7 +154,7 @@ export default function AdminConversationsPage() {
                                     <p className="text-[9px] text-[var(--text-muted)] font-mono uppercase">TB phản hồi</p>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-green-500">{detail.stats.likeFeedbacks}</p>
+                                    <p className="text-lg font-bold text-[var(--success)]">{detail.stats.likeFeedbacks}</p>
                                     <p className="text-[9px] text-[var(--text-muted)] font-mono uppercase">Like</p>
                                 </div>
                             </div>
@@ -176,7 +176,7 @@ export default function AdminConversationsPage() {
                                                 <span className="text-[10px] text-[var(--text-muted)] font-mono">{new Date(m.createdAt).toLocaleTimeString("vi-VN")}</span>
                                                 {m.aiMetrics && <span className="text-[10px] text-[var(--text-muted)] font-mono">{m.aiMetrics.totalTime}ms</span>}
                                                 {m.feedback && (
-                                                    <span className={`text-[10px] font-mono ${m.feedback.isLike ? "text-green-500" : "text-red-500"}`}>
+                                                    <span className={`text-[10px] font-mono ${m.feedback.isLike ? "text-[var(--success)]" : "text-[var(--danger)]"}`}>
                                                         {m.feedback.isLike ? "👍" : "👎"}
                                                     </span>
                                                 )}

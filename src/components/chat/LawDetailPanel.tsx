@@ -51,27 +51,27 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
         <>
             {/* Backdrop overlay */}
             <div
-                className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
                     }`}
                 onClick={onClose}
             />
 
             {/* Drawer panel */}
             <aside
-                className={`fixed top-0 right-0 h-full z-50 flex flex-col bg-[var(--bg-panel)] border-l border-[var(--border-primary)] shadow-2xl transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
+                className={`fixed top-0 right-0 z-50 flex h-full flex-col border-l border-[var(--border-primary)] bg-[var(--bg-panel)] shadow-[var(--shadow-panel)] transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "translate-x-full"
                     } w-full sm:w-[480px] md:w-[520px] lg:w-[560px]`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] shrink-0 bg-[var(--bg-main)]">
+                <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-5 py-4 backdrop-blur-xl">
                     <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-7 h-7 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent-border)] flex items-center justify-center shrink-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[var(--accent-border)] bg-[var(--accent-soft)]">
                             <svg className="w-4 h-4 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                     d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight overflow-hidden text-ellipsis whitespace-nowrap" title="Tra cứu điều luật">
+                            <h2 className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold tracking-tight text-[var(--text-primary)]" title="Tra cứu điều luật">
                                 Tra cứu điều luật
                             </h2>
                             {nodeId && (
@@ -86,7 +86,7 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
+                        className="rounded-full p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
                         title="Đóng (Esc)"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,25 +96,25 @@ export default function LawDetailPanel({ nodeId, onClose }: LawDetailPanelProps)
                 </div>
 
                 {/* Body – scrollable */}
-                <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 law-panel-scroll bg-[var(--bg-primary)]">
+                <div className="law-panel-scroll flex-1 space-y-4 overflow-y-auto bg-[var(--bg-primary)] px-5 py-5">
                     {loading && (
-                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                        <div className="flex flex-col items-center justify-center gap-3 py-16">
                             <div className="w-8 h-8 border-2 border-[var(--accent-border)] border-t-[var(--accent)] rounded-full animate-spin" />
-                            <span className="text-xs text-[var(--text-muted)] uppercase tracking-widest">Đang tải...</span>
+                            <span className="text-xs text-[var(--text-muted)]">Đang tải...</span>
                         </div>
                     )}
 
                     {error && (
-                        <div className="flex items-start gap-2.5 p-4 rounded-lg border border-red-500/20 bg-red-500/5">
-                            <svg className="w-4 h-4 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex items-start gap-2.5 rounded-[24px] border border-[var(--danger-border)] bg-[var(--danger-soft)] p-4">
+                            <svg className="w-4 h-4 text-[var(--danger)] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                             </svg>
-                            <p className="text-xs text-red-400 font-medium">{error}</p>
+                            <p className="text-xs text-[var(--danger)] font-medium">{error}</p>
                         </div>
                     )}
 
                     {!loading && !error && lawNodes.length === 0 && isOpen && (
-                        <div className="flex flex-col items-center justify-center py-16 gap-2 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
                             <svg className="w-10 h-10 text-[var(--text-faint)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
@@ -143,8 +143,8 @@ function LawNodeCard({ node, index, total }: { node: LawNode; index: number; tot
 
     return (
         <div
-            className={`relative rounded-lg border transition-all ${depth === 0
-                    ? "border-[var(--accent-border)] bg-[var(--accent-soft)]"
+            className={`relative rounded-[22px] border transition-all ${depth === 0
+                    ? "border-[var(--legal-border)] bg-[var(--legal-soft)]"
                     : "border-[var(--border-subtle)] bg-[var(--bg-secondary)] shadow-sm"
                 }`}
             style={{ marginLeft: Math.min(depth, 2) * 12 }}
@@ -160,8 +160,8 @@ function LawNodeCard({ node, index, total }: { node: LawNode; index: number; tot
             <div className="px-4 py-3">
                 {/* Node header */}
                 <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded ${depth === 0
-                            ? "bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent-border)]"
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-mono tracking-wider ${depth === 0
+                            ? "border border-[var(--legal-border)] bg-[var(--bg-secondary)] text-[var(--legal)]"
                             : "bg-[var(--bg-primary)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
                         }`}>
                         {node.id}
@@ -169,7 +169,7 @@ function LawNodeCard({ node, index, total }: { node: LawNode; index: number; tot
                 </div>
 
                 {/* Title / short text */}
-                <p className={`text-[13px] font-semibold leading-relaxed mb-2 ${depth === 0 ? "text-[var(--accent)]" : "text-[var(--text-primary)]"
+                <p className={`mb-2 text-[13px] font-semibold leading-relaxed ${depth === 0 ? "text-[var(--legal)]" : "text-[var(--text-primary)]"
                     }`}>
                     {node.text}
                 </p>

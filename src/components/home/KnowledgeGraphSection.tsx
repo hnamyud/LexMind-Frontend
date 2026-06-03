@@ -55,6 +55,28 @@ interface TooltipState {
   node: LegalNode | null;
 }
 
+const LEGEND_ITEMS = [
+  { label: "Điều khoản", token: "--graph-provision" },
+  { label: "Mức phạt", token: "--graph-penalty" },
+  { label: "Vi phạm", token: "--graph-violation" },
+];
+
+function resolveToken(token: string, fallback: string) {
+  if (typeof window === "undefined") return fallback;
+  return getComputedStyle(document.documentElement).getPropertyValue(token).trim() || fallback;
+}
+
+function graphColorForType(type: string, colors: Record<"provision" | "penalty" | "violation", string>) {
+  const normalized = type.toLowerCase();
+  if (normalized.includes("penalty") || normalized.includes("fine") || normalized.includes("muc") || normalized.includes("phat")) {
+    return colors.penalty;
+  }
+  if (normalized.includes("violation") || normalized.includes("entity") || normalized.includes("hanh") || normalized.includes("vi")) {
+    return colors.violation;
+  }
+  return colors.provision;
+}
+
 export default function KnowledgeGraphSection() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,8 +105,8 @@ export default function KnowledgeGraphSection() {
                 type_meta: {}, nodes: [], edges: []
             });
         }
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch graph data");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to fetch graph data");
       } finally {
         setLoading(false);
       }
@@ -113,6 +135,14 @@ export default function KnowledgeGraphSection() {
     const { w, h } = dims;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
+    const graphColors = {
+      provision: resolveToken("--graph-provision", "#765a19"),
+      penalty: resolveToken("--graph-penalty", "#386a20"),
+      violation: resolveToken("--graph-violation", "#4b6269"),
+      edge: resolveToken("--graph-edge", "rgba(15,108,122,0.22)"),
+      edgeActive: resolveToken("--graph-edge-active", "rgba(15,108,122,0.72)"),
+      textOnNode: resolveToken("--md-sys-color-surface-container-lowest", "#ffffff"),
+    };
 
     const defs = svg.append("defs");
 
@@ -132,7 +162,7 @@ export default function KnowledgeGraphSection() {
       .attr("orient", "auto-start-reverse")
       .append("path")
       .attr("d", "M0,0 L8,4 L0,8 Z")
-      .attr("fill", "rgba(0,212,180,0.35)");
+      .attr("fill", graphColors.edgeActive);
 
     const g = svg.append("g");
 
@@ -143,14 +173,13 @@ export default function KnowledgeGraphSection() {
 
     // Map API nodes to D3 LegalNodes
     const nodes: LegalNode[] = data.nodes.map((n) => {
-        const hColor = data.type_meta[n.type]?.color || "#64748b";
         return {
             id: n.id,
-            label: n.label.length > 20 ? n.label.substring(0, 20) + "..." : n.label, // limit label length
+            label: n.label,
             type: n.type,
-            r: n.type === "Entity" ? 10 : 14, // dynamically set radius based on some logic if needed
+            r: n.type === "Entity" ? 14 : 19,
             info: n.description,
-            colorHex: hColor
+            colorHex: graphColorForType(n.type, graphColors),
         };
     });
 
@@ -164,11 +193,11 @@ export default function KnowledgeGraphSection() {
     const sim = d3.forceSimulation<LegalNode>(nodes)
       .force("link", d3.forceLink<LegalNode, LegalEdge>(edges)
         .id((d) => d.id)
-        .distance((e) => ((e.source as LegalNode).r + (e.target as LegalNode).r) * 3.5)
+        .distance((e) => ((e.source as LegalNode).r + (e.target as LegalNode).r) * 3.9)
         .strength(0.35))
-      .force("charge", d3.forceManyBody().strength(-280))
+      .force("charge", d3.forceManyBody().strength(-320))
       .force("center", d3.forceCenter(w / 2, h / 2).strength(0.07))
-      .force("collision", d3.forceCollide<LegalNode>().radius((d) => d.r + 16))
+      .force("collision", d3.forceCollide<LegalNode>().radius((d) => d.r + 20))
       .alphaDecay(0.016)
       .velocityDecay(0.38);
 
@@ -176,7 +205,7 @@ export default function KnowledgeGraphSection() {
 
     const link = g.append("g").selectAll<SVGLineElement, LegalEdge>("line")
       .data(edges).join("line")
-      .attr("stroke", "rgba(0,212,180,0.1)")
+      .attr("stroke", graphColors.edge)
       .attr("stroke-width", 0.7)
       .attr("marker-end", "url(#arr)");
 
@@ -204,15 +233,15 @@ export default function KnowledgeGraphSection() {
       .attr("stroke", (d) => d.colorHex)
       .attr("stroke-width", 0.8);
 
-    // Label
+    // Minimal type mark; full label moves to tooltip for readability.
     node.append("text")
-      .text((d) => d.label)
+      .text((d) => (d.type || "?").slice(0, 1).toUpperCase())
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "central")
-      .attr("font-size", (d) => Math.max(7.5, d.r * 0.5))
-      .attr("font-weight", "600")
+      .attr("font-size", (d) => Math.max(9, d.r * 0.62))
+      .attr("font-weight", "700")
       .attr("font-family", "'JetBrains Mono', monospace")
-      .attr("fill", "#f8fafc")
+      .attr("fill", graphColors.textOnNode)
       .attr("pointer-events", "none");
 
     node
@@ -229,7 +258,7 @@ export default function KnowledgeGraphSection() {
           .attr("stroke", (e) => {
             const s = (e.source as LegalNode).id;
             const t = (e.target as LegalNode).id;
-            return s === d.id || t === d.id ? "rgba(0,212,180,0.65)" : "rgba(0,212,180,0.03)";
+            return s === d.id || t === d.id ? graphColors.edgeActive : "color-mix(in srgb, var(--graph-edge) 26%, transparent)";
           })
           .attr("stroke-width", (e) => {
             const s = (e.source as LegalNode).id;
@@ -249,7 +278,7 @@ export default function KnowledgeGraphSection() {
         });
       })
       .on("mouseleave", () => {
-        link.attr("stroke", "rgba(0,212,180,0.1)").attr("stroke-width", 0.7);
+        link.attr("stroke", graphColors.edge).attr("stroke-width", 0.7);
         node.selectAll<SVGCircleElement, LegalNode>("circle:nth-child(2)")
           .attr("fill", (d) => d.colorHex + "bb");
         setTooltip((s) => ({ ...s, visible: false }));
@@ -291,25 +320,26 @@ export default function KnowledgeGraphSection() {
 
   return (
     <section style={{ background: "transparent", padding: "100px 24px 80px", position: "relative", zIndex: 10 }}>
-      <div style={{ textAlign: "center", marginBottom: "52px" }}>
+      <div style={{ textAlign: "center", marginBottom: "34px", maxWidth: "760px", marginInline: "auto" }}>
         <span style={{
           display: "inline-block", fontSize: "10px", letterSpacing: "0.2em",
-          color: "#00d4b4", textTransform: "uppercase",
+          color: "var(--accent)", textTransform: "uppercase",
           fontFamily: "'JetBrains Mono',monospace", marginBottom: "18px",
-          border: "1px solid rgba(0,212,180,0.25)", borderRadius: "99px", padding: "4px 14px",
+          border: "1px solid var(--accent-border)", borderRadius: "99px", padding: "4px 14px",
+          background: "var(--accent-soft)",
         }}>
           Knowledge Graph
         </span>
         <h2 style={{
-          fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 800, color: "#f1f5f9",
+          fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 700, color: "var(--text-primary)",
           margin: "0 0 16px", lineHeight: 1.15, letterSpacing: "-0.025em",
         }}>
           Mỗi câu trả lời đều có{" "}
-          <span style={{ color: "#00d4b4" }}>lập luận gốc,</span>
+          <span style={{ color: "var(--accent)" }}>lập luận gốc,</span>
           <br />minh bạch đến từng chi tiết.
         </h2>
         <p style={{
-          color: "#475569", fontSize: "14px", maxWidth: "480px",
+          color: "var(--text-secondary)", fontSize: "14px", maxWidth: "560px",
           margin: "0 auto", lineHeight: 1.75, fontFamily: "system-ui,sans-serif",
         }}>
           Di chuột để xem chi tiết · Kéo để di chuyển · Cuộn để thu phóng
@@ -318,29 +348,57 @@ export default function KnowledgeGraphSection() {
 
       <div ref={containerRef} style={{
         position: "relative", maxWidth: "1040px", margin: "0 auto",
-        borderRadius: "20px", border: "1px solid rgba(0,212,180,0.1)",
-        background: "rgba(0,212,180,0.015)", overflow: "hidden", minHeight: "420px"
+        borderRadius: "24px", border: "1px solid var(--border-primary)",
+        background: "linear-gradient(180deg, color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 70%, transparent), color-mix(in srgb, var(--md-sys-color-surface-container) 92%, transparent))",
+        overflow: "hidden", minHeight: "520px",
+        boxShadow: "var(--shadow-panel)",
       }}>
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center text-[#00d4b4] font-mono text-sm animate-pulse">
+          <div className="absolute inset-0 flex items-center justify-center text-[var(--accent)] font-mono text-sm animate-pulse">
             Đang tải dữ liệu đồ thị...
           </div>
         ) : error ? (
-          <div className="absolute inset-0 flex items-center justify-center text-red-400 font-mono text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-[var(--danger)] font-mono text-sm">
             Lỗi tải dữ liệu: {error}
           </div>
         ) : (
           <svg ref={svgRef} style={{ display: "block", width: "100%", height: dims.h }} />
         )}
 
+        <div style={{
+          position: "absolute",
+          top: 18,
+          left: 18,
+          zIndex: 15,
+          padding: "12px 14px",
+          borderRadius: "16px",
+          background: "color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 88%, transparent)",
+          border: "1px solid var(--border-primary)",
+          boxShadow: "var(--shadow-bubble)",
+          fontFamily: "system-ui,sans-serif",
+        }}>
+          <div style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "10px" }}>
+            Legend
+          </div>
+          <div style={{ display: "grid", gap: "8px" }}>
+            {LEGEND_ITEMS.map((item) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "var(--text-secondary)" }}>
+                <span style={{ width: "10px", height: "10px", borderRadius: "999px", background: `var(${item.token})`, display: "inline-block" }} />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {tooltip.visible && tooltip.node && (
           <div style={{
             position: "absolute", left: tooltip.x, top: tooltip.y,
-            background: "rgba(5,8,16,0.97)",
+            background: "color-mix(in srgb, var(--md-sys-color-inverse-surface) 96%, transparent)",
             border: `1px solid ${tooltip.node.colorHex}44`,
-            borderRadius: "10px", padding: "10px 14px",
+            borderRadius: "14px", padding: "12px 14px",
             pointerEvents: "none", maxWidth: "220px", zIndex: 20,
             fontFamily: "system-ui,sans-serif",
+            boxShadow: "0 14px 28px rgba(0,0,0,0.28)",
           }}>
             <div style={{
               display: "inline-block", fontSize: "9px", letterSpacing: "0.12em",
@@ -351,10 +409,10 @@ export default function KnowledgeGraphSection() {
             }}>
               {tooltip.node.type}
             </div>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "#f1f5f9", marginBottom: "4px", lineHeight: 1.35 }}>
+            <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--md-sys-color-inverse-on-surface)", marginBottom: "4px", lineHeight: 1.35 }}>
               {tooltip.node.label}
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", lineHeight: 1.55 }}>
+            <div style={{ fontSize: "11px", color: "color-mix(in srgb, var(--md-sys-color-inverse-on-surface) 72%, transparent)", lineHeight: 1.55 }}>
               {tooltip.node.info}
             </div>
           </div>
@@ -362,16 +420,20 @@ export default function KnowledgeGraphSection() {
 
         {data && data.nodes && data.nodes.length > 0 && (
           <div style={{
-            position: "absolute", top: 14, left: 16, fontSize: "9px",
-            letterSpacing: "0.14em", color: "rgba(0,212,180,0.5)",
+            position: "absolute", top: 18, right: 18, fontSize: "9px",
+            letterSpacing: "0.14em", color: "var(--text-muted)",
             fontFamily: "'JetBrains Mono',monospace", pointerEvents: "none",
+            background: "color-mix(in srgb, var(--md-sys-color-surface-container-lowest) 72%, transparent)",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "999px",
+            padding: "6px 10px",
           }}>
             LEXMIND · {data.nodes.length} NODES · {data.edges.length} EDGES
           </div>
         )}
         <div style={{
           position: "absolute", bottom: 14, right: 16, fontSize: "9px",
-          letterSpacing: "0.1em", color: "rgba(100,116,139,0.5)",
+          letterSpacing: "0.1em", color: "var(--text-faint)",
           fontFamily: "'JetBrains Mono',monospace", pointerEvents: "none",
         }}>
           SCROLL TO ZOOM · DRAG TO PAN
@@ -387,11 +449,11 @@ export default function KnowledgeGraphSection() {
         ].map((s) => (
           <div key={s.l} style={{ textAlign: "center" }}>
             <div style={{
-              fontSize: "clamp(24px,3vw,34px)", fontWeight: 800, color: "#00d4b4",
+              fontSize: "clamp(24px,3vw,34px)", fontWeight: 800, color: "var(--accent)",
               lineHeight: 1, fontFamily: "'JetBrains Mono',monospace", letterSpacing: "-0.02em",
             }}>{s.v}</div>
             <div style={{
-              fontSize: "11px", color: "#334155", marginTop: "6px",
+              fontSize: "11px", color: "var(--text-muted)", marginTop: "6px",
               letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "system-ui,sans-serif",
             }}>{s.l}</div>
           </div>

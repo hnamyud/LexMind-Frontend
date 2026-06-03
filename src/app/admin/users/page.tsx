@@ -51,8 +51,8 @@ export default function AdminUsersPage() {
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Quản lý người dùng</h1>
-                    <p className="text-xs text-[var(--text-muted)] font-mono mt-1">Tổng: {total.toLocaleString()} người dùng</p>
+                    <h1 className="text-xl font-semibold tracking-tight text-[var(--text-primary)]">Quản lý người dùng</h1>
+                    <p className="mt-1 text-sm text-[var(--text-muted)]">Tổng: {total.toLocaleString()} người dùng</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <input
@@ -60,12 +60,12 @@ export default function AdminUsersPage() {
                         value={search}
                         onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                         placeholder="Tìm email hoặc tên..."
-                        className="bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-primary)] pl-8 rounded text-xs px-3 py-2 w-48 focus:outline-none focus:border-[var(--accent)] font-mono"
+                        className="h-11 w-48 rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
                     />
                     <select
                         value={roleFilter}
                         onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-                        className="bg-[var(--bg-input)] border border-[var(--border-primary)] text-[var(--text-primary)] text-xs px-3 py-2 rounded focus:outline-none focus:border-[var(--accent)] font-mono"
+                        className="h-11 rounded-2xl border border-[var(--border-primary)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
                     >
                         <option value="">Tất cả role</option>
                         <option value="USER">USER</option>
@@ -166,8 +166,8 @@ export default function AdminUsersPage() {
                                     <div><span className="text-[var(--text-muted)]">Role: </span><span className="text-[var(--accent)] font-mono">{selectedUser.role}</span></div>
                                     <div><span className="text-[var(--text-muted)]">Hội thoại: </span><span className="text-[var(--text-primary)] font-mono">{selectedUser.stats?.totalConversations}</span></div>
                                     <div><span className="text-[var(--text-muted)]">Feedbacks: </span><span className="text-[var(--text-primary)] font-mono">{selectedUser.stats?.totalFeedbacks}</span></div>
-                                    <div><span className="text-[var(--text-muted)]">Like: </span><span className="text-green-500 font-mono">{selectedUser.stats?.likeFeedbacks}</span></div>
-                                    <div><span className="text-[var(--text-muted)]">Dislike: </span><span className="text-red-500 font-mono">{selectedUser.stats?.dislikeFeedbacks}</span></div>
+                                    <div><span className="text-[var(--text-muted)]">Like: </span><span className="text-[var(--success)] font-mono">{selectedUser.stats?.likeFeedbacks}</span></div>
+                                    <div><span className="text-[var(--text-muted)]">Dislike: </span><span className="text-[var(--danger)] font-mono">{selectedUser.stats?.dislikeFeedbacks}</span></div>
                                     <div><span className="text-[var(--text-muted)]">TB tin/cuộc: </span><span className="text-[var(--text-primary)] font-mono">{selectedUser.stats?.avgMessagesPerConversation}</span></div>
                                 </div>
                                 {selectedUser.recentConversations && selectedUser.recentConversations.length > 0 && (
