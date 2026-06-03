@@ -358,7 +358,6 @@ function HomePageInner() {
                   <div className="flex min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-full bg-[var(--surface-container-high)] px-3 py-3 text-sm text-[var(--text-muted)] sm:px-4">
                     <span className="material-symbols-outlined text-[18px]">add</span>
                     <span className="min-w-0 flex-1 truncate">Hỏi LexMind về văn bản, điều, khoản, tình huống pháp lý...</span>
-                    <span className="ml-auto material-symbols-outlined text-[18px]">mic</span>
                   </div>
                 </div>
               </div>

@@ -58,20 +58,12 @@ export const ChatInput: React.FC<ChatInputProps> = React.memo(({ onSend, onCance
                     onKeyDown={handleKeyDown}
                     rows={1}
                     disabled={isStreaming}
-                    className={`chat-input-scroll w-full resize-none rounded-[28px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] py-3.5 pl-4 pr-20 text-[15px] leading-relaxed text-[var(--md-sys-color-on-surface)] shadow-[var(--shadow-panel)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-state-focus)] disabled:opacity-50 md:rounded-[30px] md:py-5 md:pl-6 md:pr-28 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
+                    className={`chat-input-scroll w-full resize-none rounded-[28px] border border-[var(--md-sys-color-outline-variant)] bg-[var(--md-sys-color-surface-container-high)] py-3.5 pl-4 pr-14 text-[15px] leading-relaxed text-[var(--md-sys-color-on-surface)] shadow-[var(--shadow-panel)] transition-colors placeholder:text-[var(--text-faint)] focus:border-[var(--md-sys-color-primary)] focus:bg-[var(--md-sys-color-surface-container)] focus:outline-none focus:ring-2 focus:ring-[var(--md-sys-state-focus)] disabled:opacity-50 md:rounded-[30px] md:py-5 md:pl-6 md:pr-16 ${isOverflowing ? 'overflow-y-auto' : 'overflow-hidden'}`}
                     placeholder="Hỏi LexMind..."
                     style={{
                         minHeight: 56, maxHeight: 240,
                     }}
                 />
-                <button
-                    type="button"
-                    title="Nhập bằng giọng nói"
-                    className="absolute bottom-2.5 right-12 rounded-full p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] md:bottom-4 md:right-16 md:p-2.5"
-                >
-                    <span className="material-symbols-outlined text-[20px]">mic</span>
-                </button>
-
                 <button
                     onClick={handleSendClick}
                     disabled={!isStreaming && !hasInput}
